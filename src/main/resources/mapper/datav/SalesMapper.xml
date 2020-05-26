@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.datav.SalesDao">
+
+	<select id="querySalesTotal" resultType="SalesTotal">
+		SELECT * FROM chainclub.ls_datav_stotal_t WHERE oid = #{oId}
+	</select>
+
+	<update id="updateSalesTotal">
+		UPDATE chainclub.ls_datav_stotal_t
+		<set>
+			<if test="total != null and total != ''">
+				total = total + #{total},
+			</if>
+			<if test="compared != null and compared != ''">
+				compared = compared + #{compared},
+			</if>
+			updatetime = sysdate
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+
+	<select id="querySalesStoreList" resultType="SalesStore">
+		SELECT * FROM chainclub.ls_datav_sstore_t WHERE oid = #{oId} ORDER BY rank ASC
+	</select>
+
+	<select id="querySalesQuarter" resultType="SalesQuarter">
+		SELECT * FROM chainclub.ls_datav_squarter_t
+		WHERE oid = #{oId} AND year = #{year} AND quarter = #{quarter}
+	</select>
+
+	<select id="querySalesAreaList" resultType="SalesArea">
+		SELECT id, oid, oname, areacode, areaname, sales, profit, sgrowth, pgrowth, createtime, updatetime, rownum rn FROM
+		(SELECT * FROM chainclub.ls_datav_sarea_t WHERE oid = #{oId}
+		<if test="type != null and type == 1">
+			ORDER BY sales DESC
+		</if>
+		<if test="type != null and type == 2">
+			ORDER BY profit DESC
+		</if>
+		<if test="type != null and type == 3">
+			ORDER BY sgrowth DESC
+		</if>
+		<if test="type != null and type == 4">
+			ORDER BY pgrowth DESC
+		</if>
+		) WHERE rownum &lt;= #{size}
+	</select>
+
+	<select id="querySalesProductList" resultType="SalesProduct">
+		SELECT id, oid, oname, productid, productname, sales, createtime, updatetime, rownum rn FROM
+		(SELECT * FROM chainclub.ls_datav_sproduct_t WHERE oid = #{oId}
+		) WHERE rownum &lt;= #{size}
+	</select>
+
+	<select id="querySalesCategoryList" resultType="SalesCategory">
+		SELECT id, oid, oname, categoryid, categoryname, sales, createtime, updatetime, rownum rn FROM
+		(SELECT * FROM chainclub.ls_datav_scategory_t WHERE oid = #{oId}
+		<if test="categoryName != null and categoryName != ''">
+			AND categoryname = #{categoryName}
+		</if>
+		) WHERE rownum &lt;= #{size}
+	</select>
+
+	<select id="querySalesUserAgeList" resultType="SalesUserAge">
+		SELECT * FROM chainclub.ls_datav_suserage_t
+		WHERE oid = #{oId} AND type = #{type}
+	</select>
+
+	<select id="querySalesYearList" resultType="SalesYear">
+		SELECT * FROM chainclub.ls_datav_syear_t
+		WHERE oid = #{oId}
+	</select>
+
+	<select id="querySalesTargetList" resultType="SalesTarget">
+		SELECT * FROM chainclub.ls_datav_starget_t
+		WHERE oid = #{oId} AND type = #{type}
+	</select>
+
+</mapper>

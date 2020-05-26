@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.mysqldao.DdtTokenDao">
+
+	<!--<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/> -->
+	<insert id="insertUser">
+		insert into chainclub.user_leaderboard_t (userid, nickname,ddt)
+		values 
+		(#{userid},
+		 #{nickname},
+		 #{ddt}
+		)
+	</insert>
+	
+	<!--  	
+	<select id="queryTopUser" resultType="TopUser">
+		select userid,nickname,ddt from chainclub.user_leaderboard_t order by ddt desc limit #{offset},#{pageSize}
+	</select>
+	-->	
+	<delete id="deletTopUser">
+		delete from user_leaderboard_t where userid>0
+	</delete>	
+		
+
+</mapper>

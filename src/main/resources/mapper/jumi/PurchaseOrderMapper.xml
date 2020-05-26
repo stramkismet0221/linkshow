@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.PurchaseOrderDao">
+
+
+    <select id="pagePurchaseList" resultType="com.ddzhuan.manage.model.jumi.order.PurchaseOrder">
+        SELECT r.* FROM (
+        SELECT
+        ROWNUM rn,
+        a.*
+        FROM (
+        SELECT * FROM chainclub.LS_JM_PURCHASE_ORDER_T
+        <where>1=1
+          <if test="purchaseOrder.type != null">
+              AND TYPE = #{purchaseOrder.type,jdbcType=BIGINT}
+          </if>
+          <if test="purchaseOrder.keyWord != null and purchaseOrder.keyWord != ''">
+               AND ( REMARK LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+               <if test="purchaseOrder.type != null">
+                   <if test="purchaseOrder.type == 1">
+                       or GHNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                   </if>
+                   <if test="purchaseOrder.type == 2">
+                       or GHDNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                   </if>
+                   <if test="purchaseOrder.type == 3">
+                       or GHTNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                   </if>
+               </if>
+              <if test="null != purchaseOrder.supplierIds and purchaseOrder.supplierIds.size() > 0">
+                  or SUPPLIERID IN
+                  <foreach collection="purchaseOrder.supplierIds" item="item" open="(" separator="," close=")" >
+                      #{item}
+                  </foreach>
+              </if>)
+          </if>
+            <if test="purchaseOrder.status != null">
+                AND STATUS = #{purchaseOrder.status,jdbcType=INTEGER}
+            </if>
+            <if test="purchaseOrder.startTime != null">
+                AND PODATE &gt;= to_date(#{purchaseOrder.startTime,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+            </if>
+            <if test="purchaseOrder.endTime != null">
+                AND PODATE &lt;= to_date(#{purchaseOrder.endTime,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+            </if>
+            </where>
+        ORDER BY CREATETIME DESC
+        ) a
+        WHERE ROWNUM &lt;= #{end,jdbcType=INTEGER}
+        ) r WHERE r.rn &gt; #{start,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="countPurchase" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM chainclub.LS_JM_PURCHASE_ORDER_T
+        <where>1=1
+            <if test="purchaseOrder.type != null">
+                AND TYPE = #{purchaseOrder.type,jdbcType=BIGINT}
+            </if>
+            <if test="purchaseOrder.keyWord != null and purchaseOrder.keyWord != ''">
+               AND (REMARK LIKE CONCAT(CONCAT('%',#{purchaseOrder.remark,jdbcType=VARCHAR} ),'%')
+                <if test="purchaseOrder.type != null">
+                    <if test="purchaseOrder.type == 1">
+                       OR GHNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                    </if>
+                    <if test="purchaseOrder.type == 2">
+                       OR GHDNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                    </if>
+                    <if test="purchaseOrder.type == 3">
+                       OR GHTNO LIKE CONCAT(CONCAT('%',#{purchaseOrder.keyWord,jdbcType=VARCHAR} ),'%')
+                    </if>
+                </if>
+                <if test="purchaseOrder.supplierIds != null and purchaseOrder.supplierIds.size() > 0">
+                  or SUPPLIERID IN
+                  <foreach collection="purchaseOrder.supplierIds" item="item" open="(" separator="," close=")" >
+                      #{item}
+                  </foreach>
+                </if>)
+            </if>
+            <if test="purchaseOrder.status != null">
+                AND STATUS = #{purchaseOrder.status,jdbcType=INTEGER}
+            </if>
+            <if test="purchaseOrder.startTime != null">
+                AND PODATE &gt;= to_date(#{purchaseOrder.startTime,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+            </if>
+            <if test="purchaseOrder.endTime != null">
+                AND PODATE &lt;= to_date(#{purchaseOrder.endTime,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+            </if>
+        </where>
+    </select>
+
+
+    <insert id="insertPurchaseOrder">
+        <selectKey keyProperty="id" resultType="long"  order="BEFORE">
+            SELECT CHAINCLUB.SEQ_LS_JM_PURCHASE_ORDER_T.nextval AS id FROM DUAL
+        </selectKey>
+        INSERT INTO CHAINCLUB.LS_JM_PURCHASE_ORDER_T
+        ( ID
+        , BUSINESSTYPE
+        , SUPPLIERID
+        , SHOPID
+        , GHNO
+        , GHTNO
+        , GHDNO
+        , GIVETIME
+        , PODATE
+        , DISCOUNTRATE
+        , DISCOUNTPIRCE
+        , STATUS
+        , REMARK
+        , TYPE
+        , CREATETIME
+        , UPDATETIME
+        , CHECKSTATUS
+        , CREATOR
+        )
+        VALUES
+        (#{id}
+        , #{businessType,jdbcType=BIGINT}
+        , #{supplierId,jdbcType=BIGINT}
+        , #{shopId,jdbcType=BIGINT}
+        , #{ghNo,jdbcType=BIGINT}
+        , #{ghtNo,jdbcType=VARCHAR}
+        , #{ghdNo,jdbcType=VARCHAR}
+        , to_date(#{giveTimeStr,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+        , to_date(#{poDateStr,jdbcType=TIMESTAMP},'YYYY-MM-dd')
+        , #{discountRate,jdbcType=DOUBLE}
+        , #{discountPrice,jdbcType=DOUBLE}
+        , #{status,jdbcType=INTEGER}
+        , #{remark,jdbcType=VARCHAR}
+        , #{type,jdbcType=INTEGER}
+        , sysdate
+        , sysdate
+        , #{checkStatus,jdbcType=INTEGER}
+        , #{creator,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="updatePurchaseOrderById">
+        UPDATE CHAINCLUB.LS_JM_PURCHASE_ORDER_T
+          <set>
+          <if test="businessType != null">
+            BUSINESSTYPE = #{businessType,jdbcType=BIGINT} ,
+          </if>
+          <if test="supplierId != null">
+               SUPPLIERID = #{supplierId,jdbcType=BIGINT} ,
+          </if>
+          <if test="shopId != null">
+               SHOPID = #{shopId,jdbcType=BIGINT} ,
+          </if>
+          <if test="giveTimeStr != null">
+                GIVETIME = to_date(#{giveTimeStr,jdbcType=TIMESTAMP},'YYYY-MM-dd') ,
+          </if>
+          <if test="poDateStr != null">
+                PODATE = to_date(#{poDateStr,jdbcType=TIMESTAMP},'YYYY-MM-dd') ,
+          </if>
+          <if test="discountRate != null">
+                DISCOUNTRATE = #{discountRate,jdbcType=DOUBLE} ,
+          </if>
+          <if test="discountPrice != null">
+                DISCOUNTPIRCE = #{discountPrice,jdbcType=DOUBLE} ,
+          </if>
+          <if test="discountAfterPrice != null">
+              DISCOUNTAFTERPRICE = #{discountAfterPrice,jdbcType=DOUBLE} ,
+          </if>
+          <if test="status != null">
+              STATUS = #{status,jdbcType=INTEGER} ,
+          </if>
+          <if test="remark != null">
+              REMARK = #{remark,jdbcType=VARCHAR} ,
+          </if>
+          <if test="checkStatus != null">
+             CHECKSTATUS = #{checkStatus,jdbcType=INTEGER} ,
+          </if>
+           UPDATETIME = SYSDATE
+          </set>
+          WHERE ID = #{id}
+    </update>
+
+    <delete id="delPurchaseORderById">
+        DELETE FROM CHAINCLUB.LS_JM_PURCHASE_ORDER_T WHERE ID = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <select id="queryPurchaseById" resultType="com.ddzhuan.manage.model.jumi.order.PurchaseOrder">
+        SELECT * FROM CHAINCLUB.LS_JM_PURCHASE_ORDER_T WHERE ID = #{id,jdbcType=BIGINT}
+    </select>
+
+</mapper>

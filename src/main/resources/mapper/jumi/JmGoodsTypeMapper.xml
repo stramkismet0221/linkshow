@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmGoodsTypeDao">
+
+	<select id="pageJmGoodsType" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsType">
+		SELECT r.* FROM (
+		SELECT
+		ROWNUM rn,
+		a.*
+		FROM (
+		SELECT * FROM chainclub.LS_JM_GOODS_TYPE_T
+		<where>
+			<if test="jmGoodsType.name != null and jmGoodsType.name != ''">
+				AND 'NAME' LIKE CONCAT(CONCAT('%',#{jmGoodsType.name,jdbcType=VARCHAR} ),'%')
+			</if>
+			<if test="jmGoodsType.code != null and jmGoodsType.code != ''">
+				AND CODE LIKE CONCAT(CONCAT('%',#{jmGoodsType.code,jdbcType=VARCHAR} ),'%')
+			</if>
+		</where>
+		  order by sno asc
+		) a
+		WHERE ROWNUM &lt;= #{end}
+		) r WHERE r.rn &gt; #{start}
+	</select>
+
+	<select id="countJmGoodsType" resultType="int">
+		SELECT count(*) FROM chainclub.LS_JM_GOODS_TYPE_T
+		<where>
+			<if test="jmGoodsType.name != null and jmGoodsType.name != ''">
+				AND 'NAME' LIKE CONCAT(CONCAT('%',#{jmGoodsType.name,jdbcType=VARCHAR} ),'%')
+			</if>
+			<if test="jmGoodsType.code != null and jmGoodsType.code != ''">
+				AND CODE LIKE CONCAT(CONCAT('%',#{jmGoodsType.code,jdbcType=VARCHAR} ),'%')
+			</if>
+		</where>
+	</select>
+
+
+	<insert id="insertJmGoodsType" parameterType="JmGoodsType">
+		<selectKey keyProperty="id" resultType="long"  order="BEFORE">
+			SELECT CHAINCLUB.SEQ_LS_JM_GOODS_TYPE_T.nextval AS id FROM DUAL
+		</selectKey>
+		INSERT INTO CHAINCLUB.LS_JM_GOODS_TYPE_T
+			( ID
+			 , NAME
+			 , CODE
+			 , SNO
+			 , SHOWTYPE
+			 , PID
+			 , ICON
+			 , DESCRIPTION
+			 , CREATETIME
+			 , UPDATETIME )
+		VALUES
+			(#{id}
+			, #{name,jdbcType=VARCHAR}
+			, #{code,jdbcType=VARCHAR}
+			, #{sno,jdbcType=SMALLINT}
+			, #{showType,jdbcType=VARCHAR}
+			, #{pid,jdbcType=VARCHAR}
+			, #{icon,jdbcType=VARCHAR}
+			, #{description,jdbcType=VARCHAR}
+			, sysdate
+			, sysdate
+			)
+	</insert>
+
+	<update id="updateJmGoodsTypeById" parameterType="JmGoodsType">
+		UPDATE CHAINCLUB.LS_JM_GOODS_TYPE_T
+		<set>
+			  NAME = #{name,jdbcType=VARCHAR}
+		  	, SNO = #{sno,jdbcType=INTEGER}
+			, SHOWTYPE = #{showType,jdbcType=VARCHAR}
+			, PID = #{pid,jdbcType=BIGINT}
+			, ICON = #{icon,jdbcType=VARCHAR}
+			, DESCRIPTION = #{description,jdbcType=VARCHAR}
+			, UPDATETIME = sysdate
+		</set>
+		WHERE ID = #{id,jdbcType=BIGINT}
+	</update>
+
+	<delete id="delJmGoodsTypeById">
+		DELETE FROM CHAINCLUB.LS_JM_GOODS_TYPE_T WHERE ID = #{jmGoodsTypeId,jdbcType=BIGINT}
+	</delete>
+
+	<select id="queryJmGoodsTypeListByPid" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsType">
+		SELECT * FROM  CHAINCLUB.LS_JM_GOODS_TYPE_T where PID = #{pid,jdbcType=BIGINT}
+	</select>
+
+	<select id="queryJmGoodsTypeById" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsType">
+		SELECT * FROM  CHAINCLUB.LS_JM_GOODS_TYPE_T WHERE ID = #{jmgoodsTypeId,jdbcType=BIGINT}
+	</select>
+
+	<select id="countJmGoodsTypeByCode" resultType="int">
+		SELECT COUNT(*) FROM  CHAINCLUB.LS_JM_GOODS_TYPE_T WHERE CODE = #{code,jdbcType=VARCHAR}
+	</select>
+
+	<select id="queryJmGoodsTypeByPid" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsType">
+		SELECT * FROM  CHAINCLUB.LS_JM_GOODS_TYPE_T WHERE PID = #{pid,jdbcType=BIGINT}
+	</select>
+
+	<select id="countJmGoodsTypeByPId" resultType="int">
+		SELECT COUNT(*) FROM  CHAINCLUB.LS_JM_GOODS_TYPE_T WHERE PID = #{pid,jdbcType=BIGINT}
+	</select>
+
+
+
+    <update id="updateJmGoodsTypeSnoByPidAnSno">
+		UPDATE CHAINCLUB.LS_JM_GOODS_TYPE_T
+		<set>
+		  <choose>
+			  <when test="type == 0">
+				  SNO = SNO-1
+			  </when>
+		  	  <when test="type == 1">
+				  SNO = SNO+1
+			  </when>
+		  </choose>
+		, UPDATETIME = sysdate
+		</set>
+		<where>
+			PID = #{pid,jdbcType=BIGINT}
+			<if test="type == 0">
+				AND SNO &gt; #{oldSno} AND SNO &lt;= #{newSno}
+			</if>
+			<if test="type == 1">
+				AND SNO &gt;= #{newSno} AND SNO &lt; #{oldSno}
+			</if>
+		</where>
+    </update>
+
+	<select id="queryGoodsTypesByIds" resultType="JmGoodsType">
+	  	SELECT * FROM chainclub.ls_jm_goods_type_t WHERE id IN
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+</mapper>

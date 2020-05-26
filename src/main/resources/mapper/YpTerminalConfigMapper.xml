@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YpTerminalConfigDao">
+
+	<insert id="batchInsertYpTerminalConfig" parameterType="java.util.List">
+		INSERT INTO chainclub.yp_terminal_config_t t(
+			terminalid,
+			placeid,
+			priceruleid,
+			virtualshelfid,
+			address )
+		<foreach close=")" collection="ypTerminalConfigs" item="item" index="index" open="(" separator="union">
+			SELECT
+			#{item.terminalId, jdbcType=VARCHAR},
+			#{item.placeId, jdbcType=VARCHAR},
+			#{item.priceRuleId, jdbcType=VARCHAR},
+			#{item.virtualShelfId, jdbcType=VARCHAR},
+			#{item.address, jdbcType=VARCHAR}
+			from dual
+		</foreach>
+	</insert>
+	
+</mapper>

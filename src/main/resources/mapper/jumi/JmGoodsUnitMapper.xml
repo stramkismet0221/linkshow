@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmGoodsUnitDao">
+
+
+    <select id="pageJmGoodsUnit" resultType="com.ddzhuan.manage.model.jumi.drp.JmGoodsUnit">
+        SELECT r.* FROM (
+        SELECT
+        ROWNUM rn,
+        a.*
+        FROM (
+        SELECT * FROM chainclub.LS_JM_GOODS_UNIT_T
+        <where>
+            <if test="jmGoodsUnit.name != null and jmGoodsUnit.name != ''">
+                AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsUnit.name,jdbcType=VARCHAR}  ),'%')
+            </if>
+        </where>
+        order by createtime desc
+        ) a
+        WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countJmGoodsUnit" resultType="int">
+        SELECT COUNT(*) FROM chainclub.LS_JM_GOODS_UNIT_T
+        <where>
+            <if test="jmGoodsUnit.name != null and jmGoodsUnit.name != ''">
+                AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsUnit.name,jdbcType=VARCHAR}  ),'%')
+            </if>
+        </where>
+    </select>
+
+
+    <insert id="insertJmGoodsUnit" parameterType="JmGoodsUnit">
+        <selectKey keyProperty="id" resultType="long"  order="BEFORE">
+            SELECT CHAINCLUB.SEQ_LS_JM_GOODS_UNIT_T.nextval FROM DUAL
+        </selectKey>
+        INSERT INTO CHAINCLUB.LS_JM_GOODS_UNIT_T
+        ( ID
+        , NAME
+        , SNO
+        , CREATETIME
+        , UPDATETIME )
+        VALUES
+        ( #{id,jdbcType=BIGINT}
+        , #{name,jdbcType=VARCHAR}
+        , #{sno,jdbcType=INTEGER}
+        , sysdate
+        , sysdate
+        )
+    </insert>
+
+    <update id="updateJmGoodsUnitById" parameterType="JmGoodsUnit">
+        UPDATE CHAINCLUB.LS_JM_GOODS_UNIT_T
+        <set>
+              NAME = #{name,jdbcType=VARCHAR}
+            , SNO = #{sno,jdbcType=INTEGER}
+            , UPDATETIME = sysdate
+        </set>
+        WHERE ID = #{id,jdbcType=BIGINT}
+    </update>
+
+    <delete id="delJmGoodsUnitById">
+        DELETE FROM CHAINCLUB.LS_JM_GOODS_UNIT_T WHERE ID = #{jmGoodsUnitId,jdbcType=BIGINT}
+    </delete>
+
+    <select id="queryJmGoodsUnitById" resultType="com.ddzhuan.manage.model.jumi.drp.JmGoodsUnit">
+        SELECT * FROM  CHAINCLUB.LS_JM_GOODS_UNIT_T WHERE ID = #{jmGoodsUnitId,jdbcType=BIGINT}
+    </select>
+
+    <select id="queryAllGoodsUnitList" resultType="com.ddzhuan.manage.model.jumi.drp.JmGoodsUnit">
+        SELECT * FROM  CHAINCLUB.LS_JM_GOODS_UNIT_T ORDER BY SNO DESC
+    </select>
+
+    <select id="getUnitByName" resultType="com.ddzhuan.manage.model.jumi.drp.JmGoodsUnit">
+          select * from chainclub.ls_jm_goods_unit_t
+          <where>
+              name=#{name}
+              <if test="id != null">
+                 and id !=#{id}
+              </if>
+          </where>
+
+    </select>
+
+
+
+</mapper>

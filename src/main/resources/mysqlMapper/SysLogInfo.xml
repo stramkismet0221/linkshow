@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.mysqldao.SysLogInfoDao">
+
+	<!--<cache type="org.mybatis.caches.ehcache.LoggingEhcache"/> -->
+	
+	<insert id="insertSysLogInfo" parameterType="SysLogInfo">
+		INSERT INTO `chainclub`.`sys_log_t`(
+			`logtype`,
+			`loglevel`,
+			`servercode`,
+			`objkey`,
+			`ip`,
+			`operatorid`,
+			`opertortype`,
+			`actdesc`,
+			`acttime`,
+			`actinfo`
+		) VALUES(
+			#{logType},
+			#{logLevel},
+			#{serverCode},
+			#{objKey, jdbcType=VARCHAR},
+			#{ip, jdbcType=VARCHAR},
+			#{operatorId, jdbcType=VARCHAR},
+			#{operatorType},
+			#{actDesc},
+			#{actTime},
+			#{actInfo, jdbcType=BLOB}
+		)
+	</insert>
+	
+	<select id="querySysLogTypeList" resultType="SysLogType" >
+		select * from `chainclub`.`sys_logtype_t`
+	</select>
+
+</mapper>

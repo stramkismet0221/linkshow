@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.RoleDao">
+
+
+    <select id="queryRoleListByConditions" resultType="com.ddzhuan.manage.model.Role">
+      select rownum,t.* from (
+        select rownum rn,r.* from CHAINCLUB.LS_ROLE_T r
+        <where>
+            <if test="role.name != null and role.name != ''">
+                and r.name like  CONCAT(CONCAT('%',#{role.name} ),'%')
+            </if>
+            <if test="role.code != null and role.code != ''">
+                and r.code = #{role.code}
+            </if>
+            <if test="role.systemId != null and role.systemId != ''">
+                and r.systemid = #{role.systemId}
+            </if>
+            and rownum &lt;= #{size}
+        </where>
+        order by r.createtime desc
+      ) t where t.rn &gt; #{start}
+    </select>
+
+    <select id="queryRoleCountByConditions" resultType="java.lang.Integer">
+        select count(*) from CHAINCLUB.LS_ROLE_T r
+        <where>
+            <if test="role.name != null and role.name != ''">
+                and r.name like  CONCAT(CONCAT('%',#{role.name} ),'%')
+            </if>
+            <if test="role.code != null and role.code != ''">
+                and r.code = #{role.code}
+            </if>
+            <if test="role.systemId != null and role.systemId != ''">
+                and r.systemid = #{role.systemId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertRole">
+        <selectKey resultType="long" order="BEFORE" keyProperty="roleId">
+            select CHAINCLUB.SEQ_LS_ROLE.nextval as roleId from dual
+        </selectKey>
+        insert into CHAINCLUB.LS_ROLE_T
+                (ID,
+                NAME,
+                CODE,
+                DESCRIPTION,
+                CREATETIME,
+                MODIFYTIME,
+                SYSTEMID)
+        VALUES
+                (#{roleId},
+                #{role.name},
+                #{role.code},
+                #{role.description},
+                sysdate,
+                sysdate,
+                #{role.systemId})
+    </insert>
+
+    <update id="updateRole">
+        update CHAINCLUB.LS_ROLE_T r
+        <set>
+            <if test="role.name != null and role.name != ''">
+                r.name = #{role.name} ,
+            </if>
+            <if test="role.code != null and role.code != ''">
+                r.code = #{role.code} ,
+            </if>
+            r.description = #{role.description}  ,
+            r.modifytime = sysdate,
+        </set>
+        where id = #{role.id}
+    </update>
+    <select id="queryRoleById" resultType="com.ddzhuan.manage.model.Role">
+        select * from CHAINCLUB.LS_ROLE_T where id = #{roleId}
+    </select>
+
+    <insert id="insertRoleMenus">
+        INSERT into CHAINCLUB.LS_ROLE_MENU_T(
+        ID,ROLEID,MENUID
+        )
+        select CHAINCLUB.SEQ_LS_ROLE_MENU.nextval,cd.* from(
+        <foreach collection="menuIds" item="item" index="index"   separator="union all">
+            select
+            #{roleId} ,#{item}
+            from dual
+        </foreach>
+        ) cd
+    </insert>
+
+    <update id="updateRolePowerByIds">
+        update CHAINCLUB.LS_ROLE_POWER_T t
+        <set>
+            <if test="powerIds != null and powerIds.size() != 0">
+                <foreach collection="powerIds" separator="," item="item">
+                    POWERID = #{item}
+                </foreach>
+            </if>
+        </set>
+        where ID in
+        <foreach collection="ids" separator="," open="(" close=")" item="item">
+          #{item}
+        </foreach>
+    </update>
+
+
+    <insert id="insertUserRole">
+        <selectKey resultType="long" order="BEFORE" keyProperty="urId">
+            select CHAINCLUB.SEQ_LS_USER_ROLE.nextval as urId from dual
+        </selectKey>
+        insert into CHAINCLUB.LS_USER_ROLE_T
+        (
+          ID,
+          ROLEID,
+          USERID
+        )
+        VALUES(
+          #{urId},
+          #{roleId} ,
+          #{userId}
+        )
+
+    </insert>
+    <delete id="delUserRole">
+        delete from CHAINCLUB.LS_USER_ROLE_T where ROLEID = #{roleId} and USERID = #{userId}
+    </delete>
+
+    <select id="queryRolesIdsByUserId" resultType="long">
+        select distinct ROLEID from CHAINCLUB.LS_USER_ROLE_T where USERID = #{userId}
+    </select>
+
+    <select id="queryRoleListBySystemId" resultType="com.ddzhuan.manage.model.Role">
+        SELECT DISTINCT t.* FROM CHAINCLUB.LS_ROLE_T t
+        left join chainclub.LS_ROLE_POWER_T r on t.id = r.ROLEID
+        <where>
+            and r.powerId = #{powerId}
+            and r.systemid = #{systemId}
+        </where>
+        order by t.createtime desc
+    </select>
+    <select id="queryRoleListByRoleAndSystemId" resultType="com.ddzhuan.manage.model.Role">
+        SELECT ROWNUM
+        rn,
+        r.*
+        FROM ( SELECT ROWNUM rn,t.* FROM CHAINCLUB.LS_ROLE_T t
+        <where>
+            <if test="role.name != null and role.name != ''">
+                and t.name like  CONCAT(CONCAT('%',#{role.name}  ),'%')
+            </if>
+            <if test="role.code != null and role.code != ''">
+                and t.code like  CONCAT(CONCAT('%',#{role.code}  ),'%')
+            </if>
+            and t.systemid = #{systemId}
+            and ROWNUM &lt;= #{size}
+            <if test="checkedRoleIds != null and checkedRoleIds.size() != 0">
+                <if test="type == 1">
+                    and t.id in
+                </if>
+                <if test="type == 2">
+                    and t.id not in
+                </if>
+                <foreach collection="checkedRoleIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by t.createtime desc
+        ) r
+        WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="queryRoleCountByRoleAndSystemId" resultType="int">
+        SELECT count(*) FROM CHAINCLUB.LS_ROLE_T t
+        <where>
+            <if test="role.name != null and role.name != ''">
+                and t.name like  CONCAT(CONCAT('%',#{role.name}  ),'%')
+            </if>
+            <if test="role.code != null and role.code != ''">
+                and t.code = #{role.code}
+            </if>
+            and t.SYSTEMID = #{systemId}
+            <if test="checkedRoleIds != null and checkedRoleIds.size() != 0">
+                and t.id not in
+                <foreach collection="checkedRoleIds" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="queryRoleByRoleCode" resultType="com.ddzhuan.manage.model.Role">
+        select * from CHAINCLUB.LS_ROLE_T t where t.code = #{code}
+    </select>
+
+    <delete id="delRoleById">
+      delete from CHAINCLUB.LS_ROLE_T where id = #{roleId}
+    </delete>
+
+    <select id="countUserByRoleId" resultType="int">
+        select count(*) from CHAINCLUB.LS_USER_ROLE_T t
+        left join CHAINCLUB.LS_USER_T u on t.USERID = u.id
+        WHERE ROLEID = #{roleId} and u.status = 1
+    </select>
+
+    <select id="queryRoleListByUserId" resultType="com.ddzhuan.manage.model.Role">
+        select distinct t.* from CHAINCLUB.LS_ROLE_T t left join CHAINCLUB.LS_USER_ROLE_T r on  t.ID = r.ROLEID
+        WHERE r.USERID = #{userId}
+    </select>
+
+    <delete id="delRolePower">
+        delete from CHAINCLUB.LS_ROLE_POWER_T WHERE ROLEID = #{roleId}
+    </delete>
+
+    <select id="queryRoleIdsBySystemId" resultType="long">
+        select id from chainclub.ls_role_t where systemid = #{systemId}
+    </select>
+
+</mapper>

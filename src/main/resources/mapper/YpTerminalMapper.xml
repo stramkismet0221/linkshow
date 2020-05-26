@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YpTerminalDao">
+
+	<insert id="batchInsertTerminalInfo" parameterType="java.util.List">
+		INSERT INTO chainclub.yp_terminal_t t(
+			id,
+			name,
+			devicecode,
+			cabinetcount,
+			createtime,
+			placeid)
+		<foreach close=")" collection="ypTerminals" item="item" index="index" open="(" separator="union">
+			SELECT
+			#{item.id, jdbcType=VARCHAR},
+			#{item.name, jdbcType=VARCHAR},
+			#{item.deviceCode, jdbcType=VARCHAR},
+			#{item.cabinetCount, jdbcType=BIGINT},
+			sysdate,
+			#{item.placeId, jdbcType=VARCHAR}
+			FROM dual
+		</foreach>
+	</insert>
+
+	<select id="queryYpTerminalListByIds" parameterType="java.util.List" resultType="YpTerminal">
+		SELECT * FROM chainclub.yp_terminal_t
+		WHERE id IN
+		<foreach collection="terminalIds" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="queryYpTerminalListByConditions" resultType="YpTerminal">
+		SELECT * FROM
+		(
+			SELECT id, name, devicecode, cabinetcount, createtime, rownum rn
+			FROM chainclub.yp_terminal_t
+			WHERE 1 = 1
+		    <if test="ypTerminal != null">
+				<if test="ypTerminal.name != null and ypTerminal.name != ''">
+					AND name LIKE CONCAT(CONCAT('%',#{ypTerminal.name} ),'%')
+				</if>
+				<if test="ypTerminal.deviceCode != null and ypTerminal.deviceCode != ''">
+					AND devicecode LIKE CONCAT(CONCAT('%',#{ypTerminal.deviceCode} ),'%')
+				</if>
+			</if>
+		    <if test="keyword != null and keyword != ''">
+				AND ( name LIKE CONCAT(CONCAT('%',#{keyword} ),'%')
+				     OR devicecode LIKE CONCAT(CONCAT('%',#{keyword} ),'%') )
+			</if>
+			AND rownum &lt;= #{page} * #{rows}
+		) c
+		WHERE c.rn > (#{page} - 1) * #{rows}
+	</select>
+
+	<select id="queryYpTerminalCountByConditions" resultType="Integer">
+		SELECT COUNT(*) FROM chainclub.yp_terminal_t
+		WHERE 1 = 1
+		<if test="ypTerminal != null">
+			<if test="ypTerminal != null">
+				<if test="ypTerminal.name != null and ypTerminal.name != ''">
+					AND name LIKE CONCAT(CONCAT('%',#{ypTerminal.name} ),'%')
+				</if>
+				<if test="ypTerminal.deviceCode != null and ypTerminal.deviceCode != ''">
+					AND devicecode LIKE CONCAT(CONCAT('%',#{ypTerminal.deviceCode} ),'%')
+				</if>
+			</if>
+		</if>
+		<if test="keyword != null and keyword != ''">
+			AND ( name LIKE CONCAT(CONCAT('%',#{keyword} ),'%')
+				OR devicecode LIKE CONCAT(CONCAT('%',#{keyword} ),'%') )
+		</if>
+	</select>
+
+	<select id="queryYpTerminalById" resultType="com.ddzhuan.manage.model.YpTerminal">
+		SELECT * FROM chainclub.yp_terminal_t WHERE id = #{terminalId}
+	</select>
+
+    <select id="getAllYpTerminalList" resultType="com.ddzhuan.manage.model.YpTerminal">
+		select * from chainclub.yp_terminal_t
+    </select>
+
+    <select id="getYpTerminalListByIds" resultType="com.ddzhuan.manage.model.YpTerminal">
+		select * from chainclub.yp_terminal_t
+		<if test="terminalIds != null and terminalIds.size() != 0">
+			where id in
+			<foreach collection="terminalIds" separator="," open="(" close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+    </select>
+
+	<select id="queryYpTerminalsByUserId" resultType="com.ddzhuan.manage.model.YpTerminal">
+		SELECT ROWNUM
+		rn,
+		r.*
+		FROM ( SELECT ROWNUM rn,t.* FROM CHAINCLUB.YP_TERMINAL_T t
+		<where>
+			<if test="ypTerminal.name != null and ypTerminal.name != ''">
+				and t.name like CONCAT(CONCAT('%',#{ypTerminal.name}  ),'%')
+			</if>
+			<if test="type == 1">
+				and t.id in
+			</if>
+			<if test="type == 2">
+				and t.id not in
+			</if>
+			<foreach collection="terminalIds" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+			and ROWNUM &lt;= #{end}
+		</where>
+		order by t.createtime desc
+		) r
+		WHERE r.rn &gt; #{start}
+	</select>
+
+	<select id="queryTerminalIdsByUserId" resultType="String">
+		select terminalid from chainclub.ls_user_terminal_t where userid = #{userId}
+	</select>
+
+	<insert id="saveUserTerminal" >
+		<selectKey resultType="long" order="BEFORE" keyProperty="id">
+			SELECT CHAINCLUB.SEQ_LS_USER_TERMINAL.nextval AS id FROM dual
+		</selectKey>
+		INSERT INTO chainclub.ls_user_terminal_t (
+		id,
+		userid,
+		terminalid
+		) VALUES (
+		#{id},
+		#{userId},
+		#{terminalId}
+		)
+	</insert>
+
+	<delete id="delUserTerminal">
+		DELETE FROM chainclub.ls_user_terminal_t WHERE userid = #{userId} AND terminalid = #{terminalId}
+	</delete>
+
+	<select id="queryTerminalIdsByName" resultType="String">
+		SELECT id FROM chainclub.yp_terminal_t WHERE name LIKE CONCAT(CONCAT('%',#{terminalName}),'%')
+	</select>
+
+</mapper>

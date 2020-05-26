@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.datav.MemberDao">
+
+	<select id="queryMemberTotalList" resultType="MemberTotal">
+		SELECT * FROM chainclub.ls_datav_mtotal_t
+		WHERE type = #{type}
+		ORDER BY timestr ASC
+	</select>
+
+	<select id="queryMemberGrowthList" resultType="MemberGrowth">
+		SELECT * FROM chainclub.ls_datav_mgrowth_t
+		WHERE type = #{type}
+		ORDER BY timestr ASC
+	</select>
+
+	<select id="queryMemberLBGrowthList" resultType="MemberLBGrowth">
+		SELECT * FROM chainclub.ls_datav_mlbgrowth_t
+		WHERE type = #{type}
+		ORDER BY timestr ASC
+	</select>
+
+	<select id="queryMemberConsumeList" resultType="MemberConsume">
+		SELECT * FROM chainclub.ls_datav_mconsume_t
+		WHERE type = #{type}
+		ORDER BY timestr ASC
+	</select>
+
+	<select id="queryMemberLBConsumeList" resultType="MemberLBConsume">
+		SELECT * FROM chainclub.ls_datav_mlbconsume_t
+		WHERE type = #{type}
+		ORDER BY timestr ASC
+	</select>
+
+	<select id="queryMemberMConsumeList" resultType="MemberMConsume">
+		SELECT * FROM chainclub.ls_datav_mmconsume_t
+		WHERE type = #{type}
+		ORDER BY id ASC
+	</select>
+
+	<select id="queryMemberLBProfitList" resultType="MemberLBProfit">
+		SELECT * FROM chainclub.ls_datav_mlbprofit_t
+		WHERE type = #{type}
+		ORDER BY id ASC
+	</select>
+
+	<select id="queryMemberAreaSalesList" resultType="MemberAreaSales">
+		SELECT * FROM chainclub.ls_datav_mareasales_t
+	</select>
+
+	<select id="queryMemberStoreSalesList" resultType="MemberStoreSales">
+		SELECT * FROM chainclub.ls_datav_mstoresales_t
+	</select>
+
+	<select id="queryMemberStoreSalesProList" resultType="MemberStoreSalesPro">
+		SELECT * FROM chainclub.ls_datav_mstoresalespro_t
+	</select>
+
+</mapper>

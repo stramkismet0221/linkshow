@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmGoodsManuFatoryDao">
+
+
+	<select id="pageJmGoodsManuFactory" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsManuFatory">
+		SELECT r.* FROM (
+		SELECT
+		ROWNUM rn,
+		a.*
+		FROM (
+		SELECT * FROM chainclub.LS_JM_GOODSMANUFACTOR_T
+		<where>
+			<if test="jmGoodsManuFatory.name != null and jmGoodsManuFatory.name != ''">
+				AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsManuFatory.name,jdbcType=VARCHAR}  ),'%')
+			</if>
+		</where>
+		  order by createtime desc
+		) a
+		WHERE ROWNUM &lt;= #{end}
+		) r WHERE r.rn &gt; #{start}
+	</select>
+
+	<select id="countJmGoodsManuFactory" resultType="int">
+		SELECT COUNT(*) FROM chainclub.LS_JM_GOODSMANUFACTOR_T
+		<where>
+			<if test="jmGoodsManuFatory.name != null and jmGoodsManuFatory.name != ''">
+				AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsManuFatory.name,jdbcType=VARCHAR}  ),'%')
+			</if>
+		</where>
+	</select>
+
+
+	<insert id="insertJmGoodsManuFatory" parameterType="JmGoodsManuFatory">
+		<selectKey keyProperty="id" resultType="long"  order="BEFORE">
+			SELECT CHAINCLUB.SEQ_LS_JM_GOODSMANUFACTOR_T.nextval FROM DUAL
+		</selectKey>
+		INSERT INTO CHAINCLUB.LS_JM_GOODSMANUFACTOR_T
+			( ID
+			 , NAME
+			 , ADDRESS
+			 , DESCRIPTION
+			 , CREATETIME
+			 , UPDATETIME )
+		VALUES
+			(#{id,jdbcType=BIGINT}
+			, #{name,jdbcType=VARCHAR}
+			, #{address,jdbcType=VARCHAR}
+			, #{description,jdbcType=VARCHAR}
+			, sysdate
+			, sysdate
+			)
+	</insert>
+
+	<update id="updateJmGoodsManuFatoryById" parameterType="JmGoodsManuFatory">
+		UPDATE CHAINCLUB.LS_JM_GOODSMANUFACTOR_T
+		<set>
+			  NAME = #{name,jdbcType=VARCHAR}
+			, ADDRESS = #{address,jdbcType=VARCHAR}
+			, DESCRIPTION = #{description,jdbcType=VARCHAR}
+			, UPDATETIME = sysdate
+		</set>
+		WHERE ID = #{id,jdbcType=BIGINT}
+	</update>
+
+	<delete id="delJmGoodsManuFatoryById">
+		DELETE FROM CHAINCLUB.LS_JM_GOODSMANUFACTOR_T WHERE ID = #{jmGoodsManuFatoryId,jdbcType=BIGINT}
+	</delete>
+
+	<select id="queryJmGoodsManuFatoryById" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsManuFatory">
+		SELECT * FROM  CHAINCLUB.LS_JM_GOODSMANUFACTOR_T WHERE ID = #{jmGoodsManuFatoryId,jdbcType=BIGINT}
+	</select>
+
+    <select id="queryAllJmGoodsManuFatory" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsManuFatory">
+		SELECT * FROM  CHAINCLUB.LS_JM_GOODSMANUFACTOR_T ORDER BY createtime DESC
+    </select>
+</mapper>

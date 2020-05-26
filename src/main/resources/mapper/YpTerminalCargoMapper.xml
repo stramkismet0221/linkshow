@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YpTerminalCargoDao">
+
+	<insert id="batchInsertYpTerminalCargo" parameterType="java.util.List">
+		INSERT INTO chainclub.yp_terminal_cargo_t t(
+			id,
+			terminalid,
+			capacity,
+			displayname,
+			cabinetname,
+			stock,
+			sellstatus,
+			barcode,
+			coldstatus,
+			hotstatus )
+		<foreach close=")" collection="ypTerminalCargoes" item="item" index="index" open="(" separator="union">
+			SELECT
+			#{item.id, jdbcType=VARCHAR},
+			#{item.terminalId, jdbcType=VARCHAR},
+			#{item.capacity, jdbcType=BIGINT},
+			#{item.displayName, jdbcType=VARCHAR},
+			#{item.cabinetName, jdbcType=VARCHAR},
+			#{item.stock, jdbcType=BIGINT},
+			#{item.sellStatus, jdbcType=BIGINT},
+			#{item.barCode, jdbcType=VARCHAR},
+			#{item.coldStatus, jdbcType=BIGINT},
+			#{item.hotStatus, jdbcType=BIGINT}
+			FROM dual
+		</foreach>
+	</insert>
+	
+</mapper>

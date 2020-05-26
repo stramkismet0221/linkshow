@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmErpSettingDao">
+
+    <select id="queryErpConfig" resultType="com.ddzhuan.manage.model.jumi.drp.JmErpSetting">
+        SELECT * FROM CHAINCLUB.LS_JM_WARE_ERPSET_T
+    </select>
+
+    <update id="updateErpConfig" parameterType="com.ddzhuan.manage.model.jumi.drp.JmErpSetting">
+        UPDATE CHAINCLUB.LS_JM_WARE_ERPSET_T
+        <set>
+            <if test="batchmng != null">
+                batchmng = #{batchmng},
+            </if>
+            <if test="fillValidityDay != null">
+                fillValidityDay = #{fillValidityDay,jdbcType=INTEGER},
+            </if>
+            <if test="needAudit != null">
+                needAudit = #{needAudit,jdbcType=INTEGER},
+            </if>
+            <if test="priceValueType != null">
+                priceValueType = #{priceValueType, jdbcType=INTEGER},
+            </if>
+            updatetime = sysdate
+        </set>
+            where id = 0
+    </update>
+
+</mapper>

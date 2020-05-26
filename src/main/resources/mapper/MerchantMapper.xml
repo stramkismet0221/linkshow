@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.MerchantDao">
+
+	<select id="queryMerchantByMerchant" resultType="com.ddzhuan.manage.model.Merchant">
+
+		select * from (
+		select rownum as rn , t.* from  (
+		select * from chainclub.ls_merchant_t m
+		<where>
+			1=1
+			<if test="merchant.company != null and merchant.company != ''">
+				and m.company like CONCAT(CONCAT('%',#{merchant.company}),'%')
+			</if>
+			and m.status=1
+		</where>
+		order by m.createtime desc
+		) t  where  rownum &lt;=#{size} ) where rn &gt;#{start}
+
+
+	</select>
+
+	<select id="queryMerchantCountByMerchant" resultType="java.lang.Integer" >
+
+	  select count(*) from chainclub.ls_merchant_t t
+	  <where>
+	  t.status=1
+	  	<if test="merchant.company != null and merchant.company != ''">
+					and t.company like CONCAT(CONCAT('%',#{merchant.company}),'%')
+		</if>
+
+	</where>
+	</select>
+
+	<update id="updateMerchant" parameterType="Merchant">
+	update  chainclub.ls_merchant_t  t
+	<set>
+		<if test="licenseImg != null">
+			t.licenseImg=#{licenseImg},
+		</if>
+		<if test="company != null and company != ''">
+		t.company=#{company},
+		</if>
+		<if test="description != null">
+			t.description=#{description},
+		</if>
+		<if test="locked != null">
+			t.locked=#{locked},
+		</if>
+		<if test="status != null">
+			t.status=#{status},
+		</if>
+		 modifytime=sysdate
+	</set>
+	where t.id=#{id}
+</update>
+
+
+
+	<select id="getMerchantInfo" parameterType="com.ddzhuan.manage.model.Merchant" resultType="com.ddzhuan.manage.model.Merchant">
+		select * from chainclub.ls_merchant_t t
+		where t.id=#{id}
+
+	</select>
+
+	<select id="getMerchantByCompany" resultType="com.ddzhuan.manage.model.Merchant" >
+		select * from chainclub.ls_merchant_t t where t.company=#{company}  and t.status=1
+		<if test="id != null">
+			and t.id != #{id}
+		</if>
+	</select>
+
+
+	<insert id="insertMerchant" parameterType="com.ddzhuan.manage.model.Merchant">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select  chainclub.seq_ls_merchant.nextval from dual
+		</selectKey>
+		insert into chainclub.ls_merchant_t (id,company,description,licenseimg,createtime)
+		values(#{id},#{company,jdbcType=VARCHAR},#{description,jdbcType=VARCHAR},#{licenseImg,jdbcType=VARCHAR},sysdate)
+	</insert>
+</mapper>

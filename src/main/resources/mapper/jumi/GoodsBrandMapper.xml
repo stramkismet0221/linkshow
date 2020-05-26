@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.GoodsBrandDao">
+
+	<select id="queryBrandListByName" resultType="com.ddzhuan.manage.model.jumi.product.GoodsBrand">
+		select * from (
+		select rownum as rn , t.* from  (
+		select * from chainclub.ls_jm_goodsbrand_t m
+		<where>
+			1=1
+			<if test="name != null and name != ''">
+				and m.name like CONCAT(CONCAT('%',#{name}),'%')
+			</if>
+
+		</where>
+		order by m.sno desc
+		) t  where  rownum &lt;=#{size} ) where rn &gt;#{start}
+	</select>
+
+	<select id="countBrandListByName" resultType="Integer">
+		select count(*) from chainclub.ls_jm_goodsbrand_t m
+		<where>
+			<if test="name!=null and name!=''">
+				m.name like concat(concat('%',#{name}),'%')
+			</if>
+		</where>
+	</select>
+
+	<insert id="insertGoodsBrand" parameterType="com.ddzhuan.manage.model.jumi.product.GoodsBrand">
+		<selectKey order="BEFORE" resultType="Long" keyProperty="id">
+			select chainclub.seq_ls_jm_goodsbrand_t_id.nextval as id from dual
+		</selectKey>
+		insert  into chainclub.ls_jm_goodsbrand_t (id,NAME,sno,logo,linkurl,description,createtime)
+		values
+		(
+			#{id},
+			#{name,jdbcType=VARCHAR},
+			#{sno},
+			#{logo,jdbcType=VARCHAR},
+			#{linkUrl,jdbcType=VARCHAR},
+			#{description,jdbcType=VARCHAR},
+			sysdate
+		)
+	</insert>
+
+	<delete id="deleteGoodsBrandById"  >
+		delete from chainclub.ls_jm_goodsbrand_t where id=#{id}
+	</delete>
+
+	<select id="getGoodsBrandByName" resultType="GoodsBrand">
+		select * from chainclub.ls_jm_goodsbrand_t where name=#{name}
+		<if test="id!=null">
+			 and id!=#{id}
+		</if>
+	</select>
+
+	<select id="maxSno" resultType="Integer">
+		select nvl(max(sno),0) as sno from chainclub.ls_jm_goodsbrand_t
+	</select>
+
+	<update id="snoAddOne" parameterType="Integer">
+		update chainclub.ls_jm_goodsbrand_t set sno=sno+1 where sno>=#{sno}
+	</update>
+
+	<update id="reduceOne" parameterType="Integer">
+		update chainclub.ls_jm_goodsbrand_t set sno=sno-1 where sno>#{sno}
+	</update>
+
+	<update id="editSno" parameterType="Integer">
+		update chainclub.ls_jm_goodsbrand_t
+		set
+		<if test="osno>nsno">
+			  sno=sno+1
+		</if>
+
+		<if test="nsno>osno">
+			sno=sno-1
+		</if>
+		where
+		<if test="osno>nsno">
+			sno>=#{nsno} and sno &lt;= #{osno}
+		</if>
+		<if test="nsno>osno">
+			sno>=#{osno} and sno &lt;= #{nsno}
+		</if>
+
+	</update>
+
+
+	<select id="getGoodsBrandById" resultType="com.ddzhuan.manage.model.jumi.product.GoodsBrand">
+		select * from chainclub.ls_jm_goodsbrand_t where id=#{id}
+
+	</select>
+
+	<update id="updateGoodsBrand" parameterType="com.ddzhuan.manage.model.jumi.product.GoodsBrand">
+		update chainclub.ls_jm_goodsbrand_t
+		<set>
+				name=#{name,jdbcType=VARCHAR},
+				sno=#{sno,jdbcType=NUMERIC},
+				logo=#{logo,jdbcType=VARCHAR},
+				linkurl=#{linkUrl,jdbcType=VARCHAR},
+				description=#{description,jdbcType=VARCHAR},
+				updatetime=sysdate
+		</set>
+		where id=#{id}
+
+	</update>
+</mapper>

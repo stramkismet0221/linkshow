@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YPThirdPayConfigDao">
+
+
+	<insert id="insertYpThirdPay">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select CHAINCLUB.YP_THIRDPAY_CONFIG_SEQ.nextval as id from dual
+		</selectKey>
+		insert into CHAINCLUB.YP_THIRDPAY_CONFIG_T(
+			  ID,
+			  PAYURL,
+			  SERVERURL,
+			  SIGNKEY,
+			  PAYTYPE,
+			  STATUS,
+			  CREATETIME,
+			  MODIFYTIME
+		)
+		VALUES (
+			  #{id} ,
+			  #{payUrl,jdbcType=VARCHAR}  ,
+			  #{serverUrl,jdbcType=VARCHAR}  ,
+			  #{signKey,jdbcType=VARCHAR}	,
+			  #{payType,jdbcType=VARCHAR}  ,
+			  #{status,jdbcType=INTEGER}  ,
+		  	  sysdate,
+			  sysdate
+		)
+	</insert>
+
+	<select id="countYpThirdPay" resultType="int">
+		select count(*) from CHAINCLUB.YP_THIRDPAY_CONFIG_T where STATUS = 0
+	</select>
+
+	<update id="updateYpThirdPay" parameterType="YPThirdPayConfig">
+		update CHAINCLUB.YP_THIRDPAY_CONFIG_T t
+		<set>
+			t.PAYURL = #{payUrl,jdbcType=VARCHAR} ,
+			t.SERVERURL = #{serverUrl,jdbcType=VARCHAR} ,
+			t.SIGNKEY = #{signKey,jdbcType=VARCHAR} ,
+			t.PAYTYPE = #{payType,jdbcType=VARCHAR} ,
+			t.STATUS = #{status,jdbcType=INTEGER} ,
+			t.MODIFYTIME = sysdate
+		</set>
+	</update>
+
+
+</mapper>

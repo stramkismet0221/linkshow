@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YpTerminalPlaceDao">
+
+	<insert id="batchInsertYpTerminalPlace" parameterType="java.util.List">
+		INSERT INTO chainclub.yp_terminal_place_t t(
+			id,
+			name,
+			province,
+			city,
+			district,
+			subject )
+		<foreach close=")" collection="ypTerminalPlaces" item="item" index="index" open="(" separator="union">
+			SELECT
+			#{item.id, jdbcType=VARCHAR},
+			#{item.name, jdbcType=VARCHAR},
+			#{item.province, jdbcType=VARCHAR},
+			#{item.city, jdbcType=VARCHAR},
+			#{item.district, jdbcType=VARCHAR},
+			#{item.subject, jdbcType=VARCHAR}
+			FROM DUAL
+		</foreach>
+	</insert>
+
+	<select id="queryYpTerminalPlaceById" resultType="com.ddzhuan.manage.model.YpTerminalPlace">
+		SELECT * FROM chainclub.yp_terminal_place_t WHERE id = #{id}
+	</select>
+
+	<select id="queryYpTerminalPlaceIdsByName" resultType="String">
+		SELECT id FROM chainclub.yp_terminal_place_t WHERE name LIKE CONCAT(CONCAT('%',#{placeName}),'%')
+	</select>
+	
+</mapper>

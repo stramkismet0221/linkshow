@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.SysInfoDAO">
+
+	<!--<cache type="org.mybatis.caches.ehcache.EhcacheCache" />-->
+	
+	<insert id="inserSystemLog" parameterType="SysLog">
+		<selectKey resultType="long" order="BEFORE" keyProperty="sysLogId">
+			select PLATFORM.SEQ_SM_SYSLOGID.nextval as sysLogId from dual
+		</selectKey>
+		Insert into SM_SYS_LOG_T3
+		(SYSLOGID, USERID, USERNAME, LOGTIME,LOGTYPE,CONTENT, RESULT,IP)
+		Values
+		( #{sysLogId}, #{userId}, #{userName},
+		sysdate,#{logType},#{content},#{result},#{ipAddr, jdbcType=VARCHAR})
+	</insert>
+	
+	<select id="querySmsLogByMobile" parameterType="SysLog" useCache="false"
+		resultType="SysLog">
+		select logtime,sysdate as curDate from PLATFORM.SM_SYS_LOG_T3
+		where LogType like 'sms%' 
+	 <![CDATA[
+		and LOGTIME>=trunc(sysdate) and LOGTIME<trunc(sysdate)+1 
+	  ]]>
+		<if test="userName != null  and userName != '' ">
+			and userName=#{userName} 
+		</if>
+		<if test="userId != null  and userId != -1 ">
+			and userId=#{userId} 
+		</if>
+		<if test="ipAddr != null">
+			and ip= #{ipAddr} 
+		</if>
+		order by SYSLOGID desc
+	</select>
+	
+	<select id="querySmsLogByIp" parameterType="SysLog" useCache="false"
+		resultType="SysLog">
+		select * from PLATFORM.SM_SYS_LOG_T3
+		where LogType like 'sms%' and userid=-1 
+		<if test="curDate != null">
+		 <![CDATA[
+			and LOGTIME>=trunc( #{curDate} ) and LOGTIME<trunc( #{curDate} )+1 
+		  ]]>
+	  </if>
+		<if test="ipAddr != null">
+			and ip= #{ipAddr} 
+		</if>
+		order by SYSLOGID desc
+	</select>
+	
+	<select id="queryIpPorvinceByIpLoong" parameterType="long" resultType="IPProvince" >
+	select 
+	  p.ipv4_begin ipbegin, p.ipv4_end ipend, p.province province,p.city city, p.organization organization,p.prov prov,
+	  p.ipv4_long_begin iplongbegin, p.ipv4_long_end iplongend ,p.prov , p.city
+	from platform.yy_ip_province_t p
+	where ipv4_long_begin &lt;= #{iplong} and ipv4_long_end &gt;=#{iplong}
+	</select>
+	
+</mapper>

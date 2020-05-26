@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.UserDao">
+
+	<sql id="BaseSql">
+		t.id,t.realname,t.username,t.mobile,t.email,t.locked,t.status,t.createtime,t.modifytime,t.agentid
+	</sql>
+
+	<sql id="query_user_where">
+		<if test="user.userName != null and user.userName != ''">
+			and t.username like  CONCAT(CONCAT('%',#{user.userName}  ),'%')
+		</if>
+		<if test="user.realName != null and user.realName != ''">
+			and t.realname like  CONCAT(CONCAT('%',#{user.realName}  ),'%')
+		</if>
+		<if test="user.mobile != null and user.mobile != ''">
+			and t.mobile = #{user.mobile}
+		</if>
+		<if test="user.email != null and user.email != ''">
+			and t.email = #{user.email}
+		</if>
+		<if test="user.locked != null and user.locked >= 0">
+			and t.locked = #{user.locked}
+		</if>
+			and t.status = 1
+	</sql>
+
+	<sql id="update_user_sql">
+		<if test="userName != null and userName != ''">
+			  t.username = #{userName},
+		</if>
+		<if test="realName != null and realName != ''">
+			 t.realname = #{realName},
+		</if>
+		<if test="mobile != null and mobile != ''">
+			 t.mobile = #{mobile},
+		</if>
+		<if test="locked != null">
+			 t.locked = #{locked},
+		</if>
+		<if test="status != null">
+			t.status = #{status},
+		</if>
+		t.email = #{email,jdbcType=VARCHAR},
+		t.modifytime = sysdate
+	</sql>
+
+	<select id="userLogin" resultType="User">
+		SELECT * FROM chainclub.ls_user_t WHERE status = 1 AND (username = #{userName} OR mobile = #{userName})
+		AND password =#{password}
+	</select>
+
+	<select id="queryUserListByConditions" resultType="User">
+
+	select r.* from (
+		SELECT
+		ROWNUM rn,
+		a.*
+		FROM ( SELECT <include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+				<where>
+					<include refid="query_user_where"/>
+					<if test="user.agentId != null">
+						<if test="user.agentId != ''">
+							and t.agentid = #{user.agentId}
+						</if>
+						<if test="user.agentId == 0">
+							and t.agentid is not null
+						</if>
+					</if>
+					and t.status = 1
+					order by t.createtime desc
+				</where>
+				) a
+				WHERE ROWNUM &lt;= #{size}
+		) r where r.rn &gt; #{start}
+	</select>
+
+	<select id="queryUserCountByConditions" resultType="java.lang.Integer">
+		select count(*) from CHAINCLUB.LS_USER_T t
+		<where>
+			<include refid="query_user_where"/>
+			<if test="user.agentId != null">
+				<if test="user.agentId != ''">
+					and t.agentid = #{user.agentId}
+				</if>
+				<if test="user.agentId == 0">
+					and t.agentid is not null
+				</if>
+			</if>
+			AND t.status = 1
+		</where>
+	</select>
+
+	<update id="updateUserByUser" parameterType="User">
+		update CHAINCLUB.LS_USER_T t
+		<set>
+			<include refid="update_user_sql"/>
+		</set>
+		where id = #{id}
+	</update>
+
+	<insert id="insertUser" parameterType="User">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select CHAINCLUB.SEQ_LS_USER.nextval as id from dual
+		</selectKey>
+		insert into CHAINCLUB.LS_USER_T
+		(ID, USERNAME, REALNAME, MOBILE,EMAIL,CREATETIME, MODIFYTIME,LOCKED,STATUS,SEX,HEADPICURL,PASSWORD,AGENTID)
+		values
+		(
+		#{id} ,
+		#{userName, jdbcType=VARCHAR},
+		#{realName, jdbcType=VARCHAR},
+		#{mobile, jdbcType=VARCHAR},
+		#{email, jdbcType=VARCHAR},
+		sysdate,
+		sysdate,
+		#{locked, jdbcType=BIGINT},
+		#{status, jdbcType=BIGINT},
+		#{sex, jdbcType=BIGINT},
+		#{headPicUrl, jdbcType=VARCHAR},
+		#{password, jdbcType=VARCHAR},
+		#{agentId, jdbcType=BIGINT}
+		  )
+	</insert>
+
+	<select id="queryUserInfoById" resultType="com.ddzhuan.manage.model.User">
+		select * from CHAINCLUB.LS_USER_T where status = 1 AND id = #{userId}
+	</select>
+
+    <select id="getUserListByRoleId" resultType="User">
+		SELECT ROWNUM
+		rn,
+		r.*
+		FROM ( SELECT ROWNUM rn,<include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_SYSTEM_T s on t.id = s.USERID
+		<where>
+			<include refid="query_user_where"/>
+			and ROWNUM &lt;= #{size}
+			and t.status = 1
+			and s.SYSTEMID = #{systemId}
+			and t.id IN ( SELECT USERID FROM CHAINCLUB.LS_USER_ROLE_T WHERE ROLEID = #{roleId}  GROUP BY USERID )
+		</where>) r
+		WHERE r.rn &gt; #{start}  order by r.createtime desc
+    </select>
+
+	<select id="getUserListByRoleIdV1" resultType="User">
+		SELECT
+			t.*
+		FROM
+			CHAINCLUB.LS_USER_T t
+		WHERE
+		t.STATUS = 1
+		AND t.id IN ( SELECT r.USERID FROM CHAINCLUB.LS_USER_ROLE_T r WHERE r.ROLEID = #{roleId}  GROUP BY r.USERID )
+	</select>
+
+	<select id="queryUserCountByRoleId" resultType="int">
+		SELECT count(*)
+		FROM ( SELECT ROWNUM rn,<include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_SYSTEM_T s on t.id = s.USERID
+		<where>
+			<include refid="query_user_where"/>
+			and t.status = 1
+			and s.SYSTEMID = #{systemId}
+			<if test="type == 1">
+				and t.id IN ( SELECT USERID FROM CHAINCLUB.LS_USER_ROLE_T WHERE ROLEID = #{roleId}  GROUP BY USERID )
+			</if>
+			<if test="type == 2">
+				and t.id NOT IN ( SELECT USERID FROM CHAINCLUB.LS_USER_ROLE_T WHERE ROLEID = #{roleId}  GROUP BY USERID )
+			</if>
+		</where>) r
+	</select>
+
+
+	<select id="queryUnCheckUser" resultType="com.ddzhuan.manage.model.User">
+		SELECT ROWNUM
+		rn,
+		r.*
+		FROM ( SELECT ROWNUM rn,<include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_SYSTEM_T s on t.id = s.USERID
+		<where>
+			<include refid="query_user_where"/>
+			and ROWNUM &lt;= #{size}
+			and t.status = 1
+			and s.SYSTEMID = #{systemId}
+			and t.id NOT IN ( SELECT USERID FROM CHAINCLUB.LS_USER_ROLE_T WHERE ROLEID = #{roleId}  GROUP BY USERID )
+		</where>) r
+		WHERE r.rn &gt; #{start}  order by r.createtime desc
+	</select>
+
+	<select id="getUserIdListByRoleId" resultType="java.lang.Long">
+		SELECT
+		t.ID
+		FROM
+		CHAINCLUB.LS_USER_T t
+		WHERE t.status = 1 AND
+		t.id in (SELECT USERID from CHAINCLUB.LS_USER_ROLE_T where ROLEID = #{roleId}  GROUP BY USERID)
+	</select>
+
+	<insert id="insertUserMenus">
+		INSERT into CHAINCLUB.LS_USER_MENU_T(
+		ID,USERID,MENUID
+		)
+		select CHAINCLUB.SEQ_LS_USER_MENU.nextval,cd.* from(
+		<foreach collection="menuIds" item="item" index="index"   separator="union all">
+			select
+			#{userId}  ,#{item}
+			from dual
+		</foreach>
+		) cd
+	</insert>
+
+	<delete id="delUserMenusByUserId">
+		delete from CHAINCLUB.LS_USER_MENU_T where USERID = #{userId}
+	</delete>
+
+	<select id="queryUserIdsBySystem" resultType="long">
+		select us.userid from chainclub.ls_user_t u left join chainclub.ls_user_system_t us on u.id = us.userid
+		where us.systemid = #{systemId} and u.status = 1
+		<if test="userName != '' and userName != null">
+			AND u.username LIKE CONCAT(CONCAT('%',#{userName}  ),'%')
+		</if>
+		<if test="realName != '' and realName != null">
+			AND u.realname LIKE CONCAT(CONCAT('%',#{realName}  ),'%')
+		</if>
+	</select>
+
+	<select id="queryUserListByIds" resultType="User">
+		SELECT * FROM
+			(SELECT id, username, realname, mobile, email, createtime, modifytime, locked, status, sex, headpicurl, rownum rn FROM
+				(SELECT * FROM chainclub.ls_user_t
+					WHERE status = 1
+					<if test="userName != '' and userName != null">
+						AND username LIKE CONCAT(CONCAT('%',#{userName}  ),'%')
+					</if>
+					<if test="realName != '' and realName != null">
+						AND realname LIKE CONCAT(CONCAT('%',#{realName}  ),'%')
+					</if>
+					<if test="ids != null and ids.size() > 0">
+						<if test="type == 1">
+							AND id IN
+						</if>
+						<if test="type == 2">
+							AND id NOT IN
+						</if>
+						<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+							#{item}
+						</foreach>
+					</if>
+					ORDER BY createtime DESC
+				) WHERE rownum &lt;= #{page} * #{rows}
+			) c
+		WHERE c.rn > (#{page} - 1) * #{rows}
+	</select>
+
+    <select id="queryUserListBySystemId" resultType="com.ddzhuan.manage.model.User">
+		 SELECT DISTINCT <include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+		left join chainclub.LS_USER_POWER_T r on t.id = r.USERID
+		<where>
+			and t.status = 1
+			and r.powerId = #{powerId}
+			and r.systemid = #{systemId}
+		</where>
+			order by t.createtime desc
+    </select>
+
+	<select id="queryUserListByPowerId" resultType="com.ddzhuan.manage.model.User">
+		SELECT ROWNUM
+		rn,
+		r.*
+		FROM ( SELECT ROWNUM rn,<include refid="BaseSql"/> FROM CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_SYSTEM_T s on t.id = s.USERID
+		<where>
+			<include refid="query_user_where"/>
+			and ROWNUM &lt;= #{size}
+			and t.status = 1
+			and s.SYSTEMID = #{systemId}
+			<if test="userIds != null and userIds.size() != 0">
+				<if test="type == 1">
+					and t.id in
+				</if>
+				<if test="type == 2">
+					and t.id not in
+				</if>
+				<foreach collection="userIds" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+		order by t.createtime desc
+		) r
+		WHERE r.rn &gt; #{start}
+	</select>
+
+
+	<select id="queryUserCountByPowerId" resultType="int">
+		SELECT count(*) FROM CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_SYSTEM_T s on t.id = s.USERID
+		<where>
+			<include refid="query_user_where"/>
+			and t.status = 1
+			and s.SYSTEMID = #{systemId}
+			<if test="userIds != null and userIds.size() != 0">
+				<if test="type == 1">
+					and t.id in
+				</if>
+				<if test="type == 2">
+					and t.id not in
+				</if>
+				<foreach collection="userIds" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+    <select id="queryUserCountByUserId" resultType="int">
+		select count(*) from CHAINCLUB.LS_USER_T t where t.USERNAME = #{userName}  and t.status = 1
+    </select>
+
+	<select id="queryCountByMobile" resultType="int">
+		select count(*) from CHAINCLUB.LS_USER_T t where t.mobile = #{mobile}  and t.status = 1
+	</select>
+
+	<select id="queryUserListByAgentId" resultType="User">
+		select * from chainclub.ls_user_t where status = 1 and agentid = #{agentId}
+	</select>
+	
+	
+	<update id="updatePwd">
+		update chainclub.ls_user_t u set u.password=#{newPwd} where u.id=#{userId}
+	</update>
+	
+	
+	<select id="checkPwd"  resultType="User">
+		select * from chainclub.ls_user_t u where u.password=#{pwd} and u.id=#{id}
+	</select>
+	
+	<update id="updatePwdByMobile" parameterType="String">
+		 update chainclub.ls_user_t u set u.password=#{pwd} where u.mobile=#{mobile}
+	</update>
+	
+	
+	
+</mapper>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.MenuDao">
+
+	<insert id="insertMenu" parameterType="Menu" >
+		INSERT INTO chainclub.ls_menu_t (
+			id,
+			pid,
+			systemid,
+			name,
+			code,
+			description,
+			visiturl,
+			sno,
+			img,
+			status,
+			createtime
+		) VALUES (
+			chainclub.seq_ls_menu_id.nextval,
+			#{pid, jdbcType=BIGINT},
+			#{systemId, jdbcType=BIGINT},
+			#{name, jdbcType=VARCHAR},
+			#{code, jdbcType=VARCHAR},
+			#{description, jdbcType=VARCHAR},
+			#{visitUrl, jdbcType=VARCHAR},
+			#{sno, jdbcType=BIGINT},
+			#{img, jdbcType=VARCHAR},
+			#{status, jdbcType=BIGINT},
+			sysdate
+		)
+	</insert>
+
+	<select id="queryMenuById" parameterType="long" resultType="Menu">
+		SELECT * FROM chainclub.ls_menu_t WHERE status = 1 AND id = #{id}
+	</select>
+
+	<update id="updateMenu" parameterType="Menu">
+		UPDATE chainclub.ls_menu_t SET
+		name = #{name},
+		sno = #{sno},
+		img = #{img},
+		visiturl = #{visitUrl, jdbcType=VARCHAR},
+		description = #{description, jdbcType=VARCHAR}
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateSnoMoveUp" parameterType="map">
+	<![CDATA[
+		UPDATE chainclub.ls_menu_t SET sno = sno + 1
+		WHERE systemId = #{systemId} AND pid = #{pid} AND sno >= #{newSno} AND sno < #{oldSno}
+	]]>
+	</update>
+
+	<update id="updateSnoMoveDown" parameterType="map">
+	<![CDATA[
+		UPDATE chainclub.ls_menu_t SET sno = sno - 1
+		WHERE systemid = #{systemId} AND pid = #{pid} AND sno > #{oldSno} AND sno <= #{newSno}
+	]]>
+	</update>
+
+	<update id="updateSno" parameterType="Menu">
+	<![CDATA[
+		UPDATE chainclub.ls_menu_t SET sno = sno + 1
+		WHERE systemid = #{systemId} AND pid = #{pid} AND sno >= #{sno}
+	]]>
+	</update>
+
+	<delete id="deleteMenu" parameterType="long">
+		DELETE FROM chainclub.ls_menu_t WHERE id = #{id}
+	</delete>
+
+	<update id="deleteSno" parameterType="Menu">
+	<![CDATA[
+		UPDATE chainclub.ls_menu_t SET sno = sno - 1
+		WHERE pid = #{pid} AND sno > #{sno}
+	]]>
+	</update>
+
+	<select id="queryMenuListByPid" resultType="Menu">
+		SELECT * FROM chainclub.ls_menu_t
+		WHERE 1 = 1
+		<if test="pid != null and pid != ''">
+			AND pid = #{pid}
+		</if>
+		AND id IN
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="queryMenuListByPidV2" resultType="Menu">
+		SELECT * FROM chainclub.ls_menu_t
+		WHERE pid = #{pid} AND systemid = #{systemId} ORDER BY sno ASC
+	</select>
+
+	<delete id="deleteRoleMenu">
+		DELETE FROM chainclub.ls_role_menu_t WHERE menuid = #{menuId}
+	</delete>
+
+	<delete id="deleteUserMenu">
+		DELETE FROM chainclub.ls_user_menu_t WHERE menuid = #{menuId}
+	</delete>
+
+	<delete id="delRoleMenusByRoleId" parameterType="Long">
+		delete from CHAINCLUB.LS_ROLE_MENU_T where roleid = #{roleId}
+	</delete>
+
+	<select id="queryMenuIdsByPowerIds" resultType="long">
+		SELECT DISTINCT(m.id) FROM chainclub.ls_power_menu_t pm LEFT JOIN chainclub.ls_menu_t m ON pm.menuid = m.id
+		WHERE 1 = 1
+		<if test="systemId != null and systemId != ''">
+			AND m.systemid = #{systemId}
+		</if>
+		AND pm.powerid IN
+		<foreach item="item" index="index" collection="powerIds" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="queryMenuIdsBySystemId" resultType="long">
+		SELECT id FROM chainclub.ls_menu_t WHERE systemid = #{systemId}
+	</select>
+
+	<select id="queryMenuCountByCode" resultType="Integer">
+		SELECT count(1) FROM chainclub.ls_menu_t WHERE 1 = 1
+		<if test="menu.code != null and menu.code != ''">
+			AND code = #{menu.code}
+		</if>
+	</select>
+
+	<select id="queryMenuIdListByPowerId" resultType="java.lang.Long">
+		SELECT
+		DISTINCT
+		m.id
+		FROM
+		CHAINCLUB.LS_POWER_MENU_T pm LEFT JOIN CHAINCLUB.LS_MENU_T m ON pm.MENUID = m.id
+		WHERE
+		pm.POWERID = #{powerId} AND m.SYSTEMID = #{systemId}
+	</select>
+
+	<select id="queryMenuListByPidV3" resultType="Long">
+		SELECT distinct s.menuid FROM  chainclub.LS_ROLE_POWER_T s where s.powerid = #{powerId}
+	</select>
+
+	<select id="queryMaxSnoBySystemId" resultType="Integer">
+		SELECT MAX(sno) FROM chainclub.ls_menu_t WHERE status = 1 AND pid = #{pid} AND systemid = #{systemId}
+	</select>
+
+</mapper>

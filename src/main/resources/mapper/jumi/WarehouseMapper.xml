@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.WarehouseDao">
+
+	<select id="getWarehouseList"  resultType="com.ddzhuan.manage.model.jumi.drp.Warehouse">
+		select * from (
+		select rownum as rn , t.* from  (
+		select * from chainclub.ls_jm_goods_warehouse_t m
+		<where>
+			<if test="name != null and name != ''">
+				 m.name like CONCAT(CONCAT('%',#{name}),'%')
+			</if>
+		</where>
+		order by m.createtime desc
+		) t  where  rownum &lt;=#{size} ) where rn &gt;#{start}
+	</select>
+
+	<select id="getWarehouseCount" parameterType="String" resultType="Integer">
+		select count(*) from   chainclub.ls_jm_goods_warehouse_t m
+		<where>
+			<if test="name != null and name != ''">
+				m.name like CONCAT(CONCAT('%',#{name,jdbcType=VARCHAR}),'%')
+			</if>
+		</where>
+	</select>
+
+	<insert id="addWarehouse" parameterType="com.ddzhuan.manage.model.jumi.drp.Warehouse">
+		<selectKey resultType="Long" keyProperty="id"  order="BEFORE">
+			select chainclub.ls_jm_warehouse_id.nextval as id from dual
+		</selectKey>
+		insert into chainclub.ls_jm_goods_warehouse_t t (id,name,code,status,isfirst,storage,provinceid,cityid,districtid,detailaddress,createtime)
+		values(
+		#{id},
+		#{name,jdbcType=VARCHAR},
+		#{code,jdbcType=VARCHAR},
+		#{status},
+		#{isFirst},
+		#{storage,jdbcType=VARCHAR},
+		#{provinceId,jdbcType=SMALLINT},
+		#{cityId,jdbcType=SMALLINT},
+		#{districtId,jdbcType=SMALLINT},
+		#{detailAddress,jdbcType=VARCHAR},
+		sysdate
+		)
+	</insert>
+
+	<select id="checkWarehouseName" resultType="com.ddzhuan.manage.model.jumi.drp.Warehouse">
+			select * from chainclub.ls_jm_goods_warehouse_t t
+			<where>
+				<if test="name != null and name !=''">
+				and	t.name =#{name} 
+				</if>
+				<if test="id!=null">
+					and t.id !=#{id}
+				</if>
+
+			</where>
+
+	</select>
+
+	<select id="getWarehouseById" resultType="com.ddzhuan.manage.model.jumi.drp.Warehouse">
+		select * from chainclub.ls_jm_goods_warehouse_t where id=#{id}
+	</select>
+
+	<update id="updateWarehouse" parameterType="Warehouse">
+		update chainclub.ls_jm_goods_warehouse_t t
+		<set>
+			name=#{name},
+			code=#{code,jdbcType=VARCHAR},
+			status=#{status},
+			isfirst=#{isFirst},
+			storage=#{storage,jdbcType=VARCHAR},
+			provinceid=#{provinceId},
+			cityid=#{cityId},
+			districtid=#{districtId},
+			detailaddress=#{detailAddress,jdbcType=VARCHAR},
+			updatetime=sysdate
+
+		</set>
+		where id=#{id}
+
+	</update>
+
+	<delete id="deleteWarehouse" parameterType="Long">
+		delete from chainclub.ls_jm_goods_warehouse_t where id=#{id}
+	</delete>
+
+
+</mapper>

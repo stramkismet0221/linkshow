@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YpProductDao">
+
+	<insert id="batchInsertYpCategory" parameterType="java.util.List">
+		INSERT INTO chainclub.yp_product_category_t (
+			id,
+			name,
+			pid,
+		    levels )
+		<foreach close=")" collection="ypProductCategories" item="item" index="index" open="(" separator="union">
+			SELECT
+			#{item.id, jdbcType=VARCHAR},
+			#{item.name, jdbcType=VARCHAR},
+			#{item.pid, jdbcType=VARCHAR},
+			#{item.levels, jdbcType=BIGINT}
+			FROM dual
+		</foreach>
+	</insert>
+
+	<select id="queryYpProductListByConditions" resultType="YpProduct">
+		SELECT * FROM
+			(SELECT barcode,name,categoryid,manufacturer,imageurl,imagefixwidthurl,colspan,payextend,createtime,modifytime, rownum rn FROM
+				(SELECT * FROM chainclub.yp_product_t
+				WHERE 1 = 1
+				<if test="product != null">
+					<if test="product.categoryId != null and product.categoryId != ''">
+						AND categoryid = #{product.categoryId}
+					</if>
+					<if test="product.barCode != null and product.barCode != ''">
+						AND barcode LIKE CONCAT(CONCAT('%',#{product.barCode}  ),'%')
+					</if>
+					<if test="product.name != null and product.name != ''">
+						AND name LIKE CONCAT(CONCAT('%',#{product.name}  ),'%')
+					</if>
+				</if>
+				<if test="keyword != null and keyword != ''">
+					AND (barcode LIKE CONCAT(CONCAT('%',#{keyword}  ),'%')
+							OR name LIKE CONCAT(CONCAT('%',#{keyword}  ),'%') )
+				</if>
+				ORDER BY createtime DESC
+				) WHERE rownum &lt;= #{page} * #{rows}
+			) c
+		WHERE c.rn > (#{page} - 1) * #{rows}
+	</select>
+
+	<select id="queryYpProductCount" parameterType="YpProduct" resultType="Integer">
+		SELECT COUNT(1) FROM chainclub.yp_product_t
+		WHERE 1 = 1
+		<if test="product != null">
+			<if test="product.categoryId != null and product.categoryId != ''">
+				AND categoryid = #{product.categoryId}
+			</if>
+			<if test="product.barCode != null and product.barCode != ''">
+				AND barcode LIKE CONCAT(CONCAT('%',#{product.barCode}  ),'%')
+			</if>
+			<if test="product.name != null and product.name != ''">
+				AND name LIKE CONCAT(CONCAT('%',#{product.name}  ),'%')
+			</if>
+		</if>
+		<if test="keyword != null and keyword != ''">
+			AND ( barcode LIKE CONCAT(CONCAT('%',#{keyword}  ),'%')
+					OR name LIKE CONCAT(CONCAT('%',#{keyword}  ),'%') )
+		</if>
+	</select>
+
+	<select id="queryYpCategoryList" parameterType="java.util.List" resultType="YpProductCategory">
+		SELECT * FROM chainclub.yp_product_category_t
+		WHERE 1 = 1
+		<if test="ids != null and ids.size() > 0">
+			AND id IN
+			<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<insert id="insertYpProduct" parameterType="YpProduct">
+		INSERT INTO chainclub.yp_product_t (
+			barcode,
+			name,
+			categoryid,
+			manufacturer,
+			imageurl,
+			imagefixwidthurl,
+			colspan,
+			payextend,
+			createtime
+		) VALUES (
+			#{product.barCode, jdbcType=VARCHAR},
+			#{product.name, jdbcType=VARCHAR},
+			#{product.categoryId, jdbcType=VARCHAR},
+			#{product.manufacturer, jdbcType=VARCHAR},
+			#{product.imageUrl, jdbcType=VARCHAR},
+			#{product.imageFixWidthUrl, jdbcType=VARCHAR},
+			#{product.colSpan, jdbcType=BIGINT},
+			#{product.payExtend, jdbcType=VARCHAR},
+			sysdate
+		)
+	</insert>
+
+	<select id="queryYpProductByBarCode" resultType="YpProduct">
+		SELECT * FROM chainclub.yp_product_t WHERE barcode = #{barCode}
+	</select>
+
+	<delete id="deleteProductByBarCode">
+		DELETE FROM chainclub.yp_product_t WHERE barcode = #{barCode}
+	</delete>
+
+	<select id="queryYpProductListByBarCodes" resultType="com.ddzhuan.manage.model.YpProduct">
+		SELECT * FROM chainclub.yp_product_t WHERE barcode in
+		<foreach collection="list" item="item" open="(" close=")"  separator=",">
+			#{item}
+		</foreach>
+	</select>
+
+</mapper>

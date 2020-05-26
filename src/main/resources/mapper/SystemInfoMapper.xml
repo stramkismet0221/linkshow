@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.SystemInfoDao">
+
+	<insert id="insertSystemInfo" parameterType="SystemInfo">
+		<selectKey resultType="long" order="BEFORE" keyProperty="id">
+			SELECT chainclub.seq_ls_system_id.nextval AS id FROM dual
+		</selectKey>
+		INSERT INTO chainclub.ls_system_t (
+			id,
+			name,
+			description,
+			status,
+			createtime
+		) VALUES (
+			#{id},
+			#{systemInfo.name, jdbcType=VARCHAR},
+			#{systemInfo.description, jdbcType=VARCHAR},
+			#{systemInfo.status, jdbcType=BIGINT},
+			sysdate
+		)
+	</insert>
+
+	<select id="querySystemInfoListByConditions" parameterType="SystemInfo" resultType="SystemInfo">
+		SELECT * FROM
+		(SELECT id, name, description, status, createtime, modifytime, rownum rn FROM
+			(SELECT * FROM chainclub.ls_system_t
+				WHERE status = 1
+				<if test="systemInfo.id != '' and systemInfo.id != null">
+					AND id = #{systemInfo.id}
+				</if>
+				<if test="systemInfo.name != '' and systemInfo.name != null">
+					AND name like  CONCAT(CONCAT('%',#{systemInfo.name} ),'%')
+				</if>
+				<if test="startTime != '' and startTime != null
+							and endTime != '' and endTime != null">
+					AND createtime >= to_date(#{startTime},'yyyy-mm-dd')
+					AND createtime &lt; to_date(#{endTime},'yyyy-mm-dd') + 1
+				</if>
+				ORDER BY id ASC
+			) WHERE rownum &lt;= #{page} * #{rows}
+		) c
+		WHERE c.rn > (#{page} - 1) * #{rows}
+	</select>
+
+	<select id="querySystemInfoCountByConditions" parameterType="SystemInfo" resultType="Integer">
+		SELECT count(*) FROM chainclub.ls_system_t
+		WHERE status = 1
+		<if test="systemInfo.name != '' and systemInfo.name != null">
+			AND name = #{systemInfo.name}
+		</if>
+		<if test="startTime != '' and startTime != null
+							and endTime != '' and endTime != null">
+			AND createtime >= to_date(#{startTime},'yyyy-mm-dd')
+			AND createtime &lt; to_date(#{endTime},'yyyy-mm-dd') + 1
+		</if>
+	</select>
+
+	<select id="findSystemInfoById" parameterType="long" resultType="SystemInfo">
+		SELECT * FROM chainclub.ls_system_t WHERE status = 1 AND id = #{id}
+	</select>
+
+	<select id="querySystemInfosByIds" resultType="SystemInfo">
+		SELECT * FROM chainclub.ls_system_t
+		WHERE status = 1 AND id IN
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id = "querySystemInfoCountByName" resultType="Integer">
+		SELECT COUNT(1) FROM chainclub.ls_system_t WHERE status = 1 AND name = #{name}
+	</select>
+
+	<update id="updateSystemInfo" parameterType="SystemInfo">
+		UPDATE chainclub.ls_system_t
+		<set>
+			<if test="systemInfo.name !=null and systemInfo.name !=''">
+				name = #{systemInfo.name}
+				,
+			</if>
+			<if test="systemInfo.description != null">
+				description = #{systemInfo.description}
+				,
+			</if>
+			<if test="systemInfo.status != null">
+				status = #{systemInfo.status}
+				,
+			</if>
+			modifytime = sysdate
+		</set>
+		<where>
+			id = #{systemInfo.id, jdbcType=VARCHAR}
+		</where>
+	</update>
+
+	<insert id="insertSystemUser">
+		<selectKey resultType="long" order="BEFORE" keyProperty="id">
+			SELECT chainclub.seq_ls_user_system.nextval AS id FROM dual
+		</selectKey>
+		INSERT INTO chainclub.ls_user_system_t
+		(
+			id,
+			userid,
+			systemid
+		)
+		VALUES
+		(
+			#{id},
+			#{userId, jdbcType=BIGINT},
+			#{systemId, jdbcType=BIGINT}
+		)
+	</insert>
+
+	<delete id="deleteSystemUser">
+		DELETE FROM chainclub.ls_user_system_t WHERE userid = #{userId} AND systemId = #{systemId}
+	</delete>
+
+	<select id="queryCountBySysIdAndUId" resultType="int">
+		SELECT count(*) FROM chainclub.ls_user_system_t WHERE userid = #{userId} AND systemid = #{systemId}
+	</select>
+
+	<select id="querySystemList" resultType="com.ddzhuan.manage.model.SystemInfo">
+		select * from chainclub.ls_system_t t
+		<where>
+			t.status = 1
+			<if test="id != null">
+				and t.id = #{id}
+			</if>
+			<if test="name != null and name != ''">
+				and t.name like  CONCAT(CONCAT('%',#{name} ),'%')
+			</if>
+			order by id asc
+		</where>
+	</select>
+
+    <select id="querySystemByUserId" resultType="SystemInfo">
+		SELECT
+			t.*
+		FROM
+			chainclub.ls_system_t t
+		WHERE
+		t.id IN ( SELECT DISTINCT SYSTEMID FROM CHAINCLUB.LS_USER_SYSTEM_T WHERE USERID = #{userId}  )
+    </select>
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.DictionaryDao">
+
+	<insert id="insertDictionary">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select chainclub.SEQ_LS_DIC_ID.nextval as id from dual
+		</selectKey>
+		INSERT INTO chainclub.ls_dic_t t(
+			id,
+			code,
+			name,
+			value,
+			pid,
+			type
+		) VALUES (
+			#{id},
+			#{code, jdbcType=VARCHAR},
+			#{name, jdbcType=VARCHAR},
+			#{value, jdbcType=VARCHAR},
+			#{pid, jdbcType=BIGINT},
+			#{type, jdbcType=BIGINT}
+		)
+	</insert>
+
+	<select id="queryDictionaryListByType" resultType="Dictionary">
+		SELECT * FROM
+		(SELECT id, code, name, value, pid, type, rownum rn FROM
+		(SELECT * FROM chainclub.ls_dic_t WHERE type = #{type}
+			ORDER BY id ASC
+		) WHERE rownum &lt;= #{page} * #{rows}
+		) c
+		WHERE c.rn > (#{page} - 1) * #{rows}
+	</select>
+
+	<select id="countDictionaryListByType" resultType="Integer">
+		SELECT count(*) FROM chainclub.ls_dic_t WHERE type = #{type}
+	</select>
+
+	<update id="updateDictionary" parameterType="Dictionary">
+		UPDATE chainclub.ls_dic_t
+		<set>
+			<if test="dictionary.code !=null and dictionary.code != ''">
+				code = #{dictionary.code},
+			</if>
+			<if test="dictionary.name != null and dictionary.name != ''">
+				name = #{dictionary.name},
+			</if>
+			<if test="dictionary.value != null and dictionary.value != ''">
+				value = #{dictionary.value}
+			</if>
+		</set>
+		<where>
+			id = #{dictionary.id, jdbcType=BIGINT}
+		</where>
+	</update>
+
+	<select id="queryDictionaryByValue" resultType="Dictionary">
+		SELECT * FROM chainclub.ls_dic_t WHERE type = #{dictionary.type}
+		<if test="dictionary.code != null and dictionary.code != ''">
+			AND code = #{dictionary.code}
+		</if>
+		<if test="dictionary.value != null and dictionary.value != ''">
+			AND value = #{dictionary.value}
+		</if>
+	</select>
+
+	<select id="queryDictionaryValueByCodeAndType" resultType="java.lang.String">
+		SELECT VALUE FROM chainclub.ls_dic_t WHERE type = #{type,jdbcType=INTEGER}
+		<if test="code != null and code != ''">
+			AND code = #{code,jdbcType=VARCHAR}
+		</if>
+	</select>
+
+</mapper>

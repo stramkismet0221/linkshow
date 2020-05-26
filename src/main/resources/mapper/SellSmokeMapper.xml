@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.SellSmokeDao">
+
+    <insert id="insertSellSmokeInstall" parameterType="SellSmokeInstall">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            select CHAINCLUB.SEQ_LS_SELLSMOKE_INSTALL.nextval as id from dual
+        </selectKey>
+        insert into CHAINCLUB.LS_SELLSMOKE_INSTALL_T
+        (ID,
+        AGENTID,
+        STORE,
+        STOREUSER,
+        ADDRESS,
+        MOBILE,
+        APPOINTTIME,
+        TERMINALTYPE,
+        TNUMBER,
+        APPLYUSERID,
+        APPLYUSERNAME,
+        APPLYTIME,
+        APPLYUSERMOBILE,
+        APPLYREMARK,
+        STATUS,
+        REMARK,
+        CREATETIME,
+        MODIFYTIME,
+        AGENTNAME
+        )
+        VALUES
+        (#{id},
+        #{sellSmokeInstall.agentId, jdbcType=BIGINT},
+        #{sellSmokeInstall.store, jdbcType=VARCHAR},
+        #{sellSmokeInstall.storeUser, jdbcType=VARCHAR},
+        #{sellSmokeInstall.address, jdbcType=VARCHAR},
+        #{sellSmokeInstall.mobile, jdbcType=BIGINT},
+        #{sellSmokeInstall.appointTime, jdbcType=TIMESTAMP},
+        #{sellSmokeInstall.terminalType, jdbcType=VARCHAR},
+        #{sellSmokeInstall.tNumber, jdbcType=BIGINT},
+        #{sellSmokeInstall.applyUserId, jdbcType=BIGINT},
+        #{sellSmokeInstall.applyUserName, jdbcType=VARCHAR},
+        sysdate,
+        #{sellSmokeInstall.applyUserMobile, jdbcType=BIGINT},
+        #{sellSmokeInstall.applyRemark, jdbcType=VARCHAR},
+        #{sellSmokeInstall.status},
+        #{sellSmokeInstall.remark, jdbcType=VARCHAR},
+        sysdate,
+        sysdate,
+        #{sellSmokeInstall.agentName, jdbcType=VARCHAR})
+    </insert>
+
+    <select id="querySellSmokeInstallList" resultType="SellSmokeInstall">
+        SELECT * FROM
+        (SELECT
+        id,agentid,store,storeuser,address,mobile,appointtime,tnumber,applyuserid,applyusername,applytime,applyremark,audituserid,auditusername,
+        audittime,auditremark,installuserid,installusername,installtime,installremark,status,remark,createtime,modifytime,agentname,rownum
+        rn FROM
+        (SELECT * FROM CHAINCLUB.LS_SELLSMOKE_INSTALL_T
+        <where>
+            <if test="sellSmokeInstall.id != null and sellSmokeInstall.id != ''">
+                and id = #{sellSmokeInstall.id}
+            </if>
+            <if test="sellSmokeInstall.agentId != null and sellSmokeInstall.agentId != ''">
+                and agentid = #{sellSmokeInstall.agentId}
+            </if>
+            <if test="sellSmokeInstall.agentName != null and sellSmokeInstall.agentName != ''">
+                and agentname like CONCAT(CONCAT('%',#{sellSmokeInstall.agentName} ),'%')
+            </if>
+            <if test="userId != null and userId != ''">
+                and (applyuserid = #{userId} or audituserid = #{userId} or installuserid = #{userId})
+            </if>
+            <if test="sellSmokeInstall.applyUserName != null and sellSmokeInstall.applyUserName != ''">
+                and applyusername like CONCAT(CONCAT('%',#{sellSmokeInstall.applyUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.auditUserName != null and sellSmokeInstall.auditUserName != ''">
+                and auditUserName like CONCAT(CONCAT('%',#{sellSmokeInstall.auditUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.installUserName != null and sellSmokeInstall.installUserName != ''">
+                and installusername like CONCAT(CONCAT('%',#{sellSmokeInstall.installUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.status != null">
+                and status = #{sellSmokeInstall.status}
+            </if>
+        </where>
+        ORDER BY createtime DESC
+        ) WHERE rownum &lt;= #{end}
+        ) c
+        WHERE c.rn > #{start}
+    </select>
+
+    <select id="countSellSmokeInstalls" resultType="Integer">
+        SELECT count(*) FROM CHAINCLUB.LS_SELLSMOKE_INSTALL_T
+        <where>
+            <if test="sellSmokeInstall.id != null and sellSmokeInstall.id != ''">
+                and id = #{sellSmokeInstall.id}
+            </if>
+            <if test="sellSmokeInstall.agentId != null and sellSmokeInstall.agentId != ''">
+                and agentid = #{sellSmokeInstall.agentId}
+            </if>
+            <if test="sellSmokeInstall.agentName != null and sellSmokeInstall.agentName != ''">
+                and agentname like CONCAT(CONCAT('%',#{sellSmokeInstall.agentName} ),'%')
+            </if>
+            <if test="userId != null and userId != ''">
+                and (applyuserid = #{userId} or audituserid = #{userId} or installuserid = #{userId})
+            </if>
+            <if test="sellSmokeInstall.applyUserName != null and sellSmokeInstall.applyUserName != ''">
+                and applyusername like CONCAT(CONCAT('%',#{sellSmokeInstall.applyUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.auditUserName != null and sellSmokeInstall.auditUserName != ''">
+                and auditUserName like CONCAT(CONCAT('%',#{sellSmokeInstall.auditUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.installUserName != null and sellSmokeInstall.installUserName != ''">
+                and installusername like CONCAT(CONCAT('%',#{sellSmokeInstall.installUserName} ),'%')
+            </if>
+            <if test="sellSmokeInstall.status != null">
+                and status = #{sellSmokeInstall.status}
+            </if>
+        </where>
+    </select>
+
+    <select id="querySellSmokeById" resultType="SellSmokeInstall">
+        SELECT * FROM CHAINCLUB.LS_SELLSMOKE_INSTALL_T WHERE id = #{id}
+    </select>
+
+    <update id="updateSellSmokeInstall" parameterType="SellSmokeInstall">
+        UPDATE CHAINCLUB.LS_SELLSMOKE_INSTALL_T
+        <set>
+            <if test="sellSmokeInstall.store != null and sellSmokeInstall.store != ''">
+                store = #{sellSmokeInstall.store} ,
+            </if>
+            <if test="sellSmokeInstall.storeUser != null and sellSmokeInstall.storeUser != ''">
+                storeuser = #{sellSmokeInstall.storeUser} ,
+            </if>
+            <if test="sellSmokeInstall.mobile != null and sellSmokeInstall.mobile != ''">
+                mobile = #{sellSmokeInstall.mobile} ,
+            </if>
+            <if test="sellSmokeInstall.address != null and sellSmokeInstall.address != ''">
+                address = #{sellSmokeInstall.address} ,
+            </if>
+            <if test="sellSmokeInstall.tNumber != null and sellSmokeInstall.tNumber != ''">
+                tnumber = #{sellSmokeInstall.tNumber} ,
+            </if>
+            <if test="sellSmokeInstall.appointTime != null and sellSmokeInstall.appointTime != ''">
+                appointtime = #{sellSmokeInstall.appointTime} ,
+            </if>
+            <if test="sellSmokeInstall.terminalType != null and sellSmokeInstall.terminalType != ''">
+                terminaltype = #{sellSmokeInstall.terminalType} ,
+            </if>
+            <if test="sellSmokeInstall.applyRemark != null and sellSmokeInstall.applyRemark != ''">
+                applyremark = #{sellSmokeInstall.applyRemark} ,
+            </if>
+
+            <if test="sellSmokeInstall.auditUserId != null">
+                audituserid = #{sellSmokeInstall.auditUserId} ,
+            </if>
+            <if test="sellSmokeInstall.auditUserName != null">
+                auditusername = #{sellSmokeInstall.auditUserName} ,
+            </if>
+            <if test="sellSmokeInstall.auditUserId != null">
+                audittime = sysdate ,
+            </if>
+            <if test="sellSmokeInstall.auditUserMobile != null">
+                auditusermobile = #{sellSmokeInstall.auditUserMobile} ,
+            </if>
+            <if test="sellSmokeInstall.auditRemark != null">
+                auditremark = #{sellSmokeInstall.auditRemark} ,
+            </if>
+
+            <if test="sellSmokeInstall.installUserId != null">
+                installuserid = #{sellSmokeInstall.installUserId} ,
+            </if>
+            <if test="sellSmokeInstall.installUserName != null">
+                installusername = #{sellSmokeInstall.installUserName} ,
+            </if>
+            <if test="sellSmokeInstall.installUserId != null">
+                installtime = sysdate ,
+            </if>
+            <if test="sellSmokeInstall.installUserMobile != null">
+                installusermobile = #{sellSmokeInstall.installUserMobile} ,
+            </if>
+            <if test="sellSmokeInstall.installRemark != null">
+                installremark = #{sellSmokeInstall.installRemark} ,
+            </if>
+            <if test="sellSmokeInstall.remark != null and sellSmokeInstall.remark != ''">
+                remark = #{sellSmokeInstall.remark} ,
+            </if>
+            <if test="sellSmokeInstall.status != null">
+                status = #{sellSmokeInstall.status} ,
+            </if>
+            modifytime = sysdate
+        </set>
+        WHERE id = #{sellSmokeInstall.id}
+    </update>
+
+    <delete id="deleteSellSmokeInstall">
+        delete from CHAINCLUB.LS_SELLSMOKE_INSTALL_T where id = #{id}
+    </delete>
+
+    <select id="getAgentExist" resultType="SellSmokeAgent">
+    SELECT * FROM CHAINCLUB.LS_SELLSMOKE_AGENT_T WHERE ID = #{id}
+    </select>
+
+    <insert id="insertAgent" parameterType="SellSmokeAgent">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            select CHAINCLUB.SEQ_LS_SELLSMOKE_AGENT.nextval as id from dual
+        </selectKey>
+        insert into CHAINCLUB.LS_SELLSMOKE_AGENT_T
+        (ID,
+        NAME,
+        CONTACTS,
+        ADDRESS,
+        MOBILE,
+        STATUS,
+        REMARK,
+        CREATETIME,
+        MODIFYTIME)
+        VALUES
+        (#{id},
+        #{sellSmokeAgent.name},
+        #{sellSmokeAgent.contacts},
+        #{sellSmokeAgent.address},
+        #{sellSmokeAgent.mobile},
+        #{sellSmokeAgent.status},
+        #{sellSmokeAgent.remark},
+        sysdate,
+        sysdate)
+    </insert>
+
+    <delete id="delAgent" parameterType="SellSmokeAgent">
+        delete from CHAINCLUB.LS_SELLSMOKE_AGENT_T where ID = #{sellSmokeAgent.id}
+    </delete>
+
+    <update id="updateAgent" parameterType="SellSmokeAgent">
+        update CHAINCLUB.LS_SELLSMOKE_AGENT_T
+        <set>
+            <if test="sellSmokeAgent.name != null and sellSmokeAgent.name != ''">
+                name = #{sellSmokeAgent.name},
+            </if>
+            <if test="sellSmokeAgent.contacts != null and sellSmokeAgent.contacts != ''">
+                contacts = #{sellSmokeAgent.contacts},
+            </if>
+            <if test="sellSmokeAgent.address != null and sellSmokeAgent.address != ''">
+                address = #{sellSmokeAgent.address},
+            </if>
+            <if test="sellSmokeAgent.mobile != null and sellSmokeAgent.mobile != ''">
+                mobile = #{sellSmokeAgent.mobile},
+            </if>
+            <if test="sellSmokeAgent.remark != null and sellSmokeAgent.remark != ''">
+                remark = #{sellSmokeAgent.remark},
+            </if>
+            modifytime = sysdate,
+        </set>
+        WHERE id = #{sellSmokeAgent.id}
+    </update>
+
+    <select id="queryAgentById" resultType="SellSmokeAgent">
+        SELECT * FROM CHAINCLUB.LS_SELLSMOKE_AGENT_T WHERE id = #{id}
+    </select>
+
+    <select id="queryAgentCount" resultType="Integer">
+      SELECT count(*)from CHAINCLUB.LS_SELLSMOKE_AGENT_T
+        <where>
+            <if test="sellSmokeAgent.id != null and sellSmokeAgent.id != ''">
+                and id = #{sellSmokeAgent.id}
+            </if>
+            <if test="sellSmokeAgent.name != null and sellSmokeAgent.name != ''">
+                and name like CONCAT(CONCAT('%',#{sellSmokeAgent.name} ),'%')
+            </if>
+            <if test="sellSmokeAgent.contacts != null and sellSmokeAgent.contacts != ''">
+                and name like CONCAT(CONCAT('%',#{sellSmokeAgent.contacts} ),'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="querySellSmokeAgentList" resultType="SellSmokeAgent">
+        SELECT * FROM
+        (SELECT id,name,contacts,address,mobile,remark,createtime,modifytime,rownum rn FROM
+        (SELECT * FROM CHAINCLUB.LS_SELLSMOKE_AGENT_T
+        <where>
+            <if test="sellSmokeAgent.id != null and sellSmokeAgent.id != ''">
+                and id = #{sellSmokeAgent.id}
+            </if>
+            <if test="sellSmokeAgent.name != null and sellSmokeAgent.name != ''">
+                and name like CONCAT(CONCAT('%',#{sellSmokeAgent.name} ),'%')
+            </if>
+            <if test="sellSmokeAgent.contacts != null and sellSmokeAgent.contacts != ''">
+                and contacts like CONCAT(CONCAT('%',#{sellSmokeAgent.contacts} ),'%')
+            </if>
+        </where>
+        ORDER BY createtime DESC
+        ) WHERE rownum &lt;= #{end}
+        ) c
+        WHERE c.rn > #{start}
+    </select>
+    <insert id="insertTerminal" parameterType="SellSmokeTerminal">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            select CHAINCLUB.SEQ_LS_SELLSMOKE_TERMINAL.nextval as id from dual
+        </selectKey>
+        INSERT INTO chainclub.ls_sellsmoke_terminal_t (
+        id,
+        installid,
+        terminaltype,
+        terminaltypename,
+        terminalcode,
+        terminalname,
+        createtime,
+        modifytime)
+        VALUES (
+        #{id},
+        #{sellSmokeTerminal.installId, jdbcType=BIGINT},
+        #{sellSmokeTerminal.terminalType, jdbcType=VARCHAR},
+        #{sellSmokeTerminal.terminalTypeName, jdbcType=VARCHAR},
+        #{sellSmokeTerminal.terminalCode, jdbcType=VARCHAR},
+        #{sellSmokeTerminal.terminalName, jdbcType=VARCHAR},
+        sysdate,
+        sysdate)
+    </insert>
+
+    <select id="querySellSmokeTerminalList" resultType="SellSmokeTerminal">
+        SELECT * FROM chainclub.ls_sellsmoke_terminal_t WHERE installid = #{installId}
+    </select>
+
+    <update id="updateSellSmokeTerminal" parameterType="SellSmokeTerminal">
+        UPDATE chainclub.ls_sellsmoke_terminal_t
+        <set>
+            <if test="sellSmokeTerminal.terminalCode != null and sellSmokeTerminal.terminalCode != ''">
+                terminalcode = #{sellSmokeTerminal.terminalCode},
+            </if>
+            <if test="sellSmokeTerminal.terminalName != null and sellSmokeTerminal.terminalName != ''">
+                terminalname = #{sellSmokeTerminal.terminalName},
+            </if>
+            modifytime = sysdate,
+        </set>
+        WHERE id = #{sellSmokeTerminal.id}
+    </update>
+
+    <delete id="deleteSellSmokeTerminal">
+        DELETE FROM chainclub.ls_sellsmoke_terminal_t WHERE installid = #{installId}
+    </delete>
+
+    <select id="querySellSmokeInstallListByUserId" resultType="SellSmokeInstall">
+        SELECT * FROM CHAINCLUB.LS_SELLSMOKE_INSTALL_T
+        WHERE applyuserid = #{userId} OR audituserid = #{userId} OR installuserid = #{userId}
+    </select>
+
+</mapper>

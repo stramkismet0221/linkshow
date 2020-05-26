@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.PowerDao">
+
+
+	<insert id="insertPower">
+		<selectKey resultType="long" order="BEFORE" keyProperty="powerId">
+			select CHAINCLUB.SEQ_LS_POWER.nextval as powerId from dual
+		</selectKey>
+		insert into CHAINCLUB.LS_POWER_T
+		(ID,
+		NAME,
+		SYSTEMID,
+		CODE,
+		DESCRIPTION,
+		TYPE,
+		CREATETIME,
+		MODIFYTIME)
+        VALUES
+        (#{powerId},
+        #{power.name} ,
+        #{power.systemId} ,
+        #{power.code} ,
+        #{power.description} ,
+        #{power.type},
+        sysdate ,
+        sysdate )
+	</insert>
+
+	<select id="queryAllPowerList" resultType="com.ddzhuan.manage.model.Power">
+		select rownum,t.* from (
+		select rownum rn,r.* from  CHAINCLUB.LS_POWER_T r
+		<where>
+			<if test="power.name != null and power.name != ''">
+				and r.name like  CONCAT(CONCAT('%',#{power.name} ),'%')
+			</if>
+			<if test="power.description != null and power.description != ''">
+				and r.description = #{power.description}
+			</if>
+			<if test="power.code != null and power.code != ''">
+				and r.code = #{power.code}
+			</if>
+			<if test="power.systemId != null">
+				and r.systemid = #{power.systemId}
+			</if>
+			<if test="power.type != null">
+				and r.type = #{power.type}
+			</if>
+			and rownum &lt;= #{size}
+		</where>
+		 order by r.createtime desc
+		) t
+		 where t.rn &gt; #{start}
+	</select>
+
+
+	<select id="queryPowerById" resultType="Power" parameterType="Long">
+		select * from CHAINCLUB.LS_POWER_T where id = #{id}
+	</select>
+	<update id="updatePower" parameterType="Power">
+		update CHAINCLUB.LS_POWER_T r
+		<set>
+			<if test="code != null and code != ''">
+				r.code = #{code}  ,
+			</if>
+			<if test="name != null and name != ''">
+				r.name = #{name} ,
+			</if>
+			<if test="description != null">
+				r.description = #{description} ,
+			</if>
+				r.modifytime = sysdate
+		</set>
+		where id = #{id}
+	</update>
+	<select id="queryPowerCountByConditions" resultType="int">
+		select count(*) from  CHAINCLUB.LS_POWER_T r
+		<where>
+			<if test="power.name != null and power.name != ''">
+				and r.name like  CONCAT(CONCAT('%',#{power.name} ),'%')
+			</if>
+			<if test="power.description != null and power.description != ''">
+				and r.description = #{power.description}
+			</if>
+			<if test="power.code != null and power.code != ''">
+				and r.code = #{power.code}
+			</if>
+			<if test="power.systemId != null">
+				and r.systemid = #{power.systemId}
+			</if>
+			<if test="power.type != null">
+				and r.type = #{power.type}
+			</if>
+		</where>
+	</select>
+
+	<select id="queryPowerIdsByRoleIds" resultType="long">
+		select powerid from CHAINCLUB.LS_ROLE_POWER_T
+		where POWERID in (select ID from CHAINCLUB.LS_POWER_T where TYPE = #{powerType})
+		and roleid in
+		<foreach item="item" index="index" collection="roleIds" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="queryPowerByRoleId" resultType="Power">
+		  select t.* from CHAINCLUB.LS_POWER_T t left join CHAINCLUB.LS_ROLE_POWER_T r on t.id = r.powerid
+		  where r.roleid = #{roleId}
+	</select>
+
+	<select id="queryPowerListByRoleId" resultType="com.ddzhuan.manage.model.Power">
+		select r.* from  CHAINCLUB.LS_POWER_T r
+		 left join CHAINCLUB.LS_ROLE_POWER_T a on r.ID = a.POWERID
+		where a.POWERID = #{powerId}
+		<if test="roleId != null and roleId != ''">
+			and a.ROLEID = #{roleId}
+		</if>
+	</select>
+
+	<delete id="delRolePowerByRoleId">
+		delete from CHAINCLUB.LS_ROLE_POWER_T where ROLEID = #{roleId}
+	</delete>
+
+	<!--TODO 需要创建用户权限关联表chainclub.ls_user_power_t-->
+	<select id="queryPowerIdsByUserId" resultType="long">
+		SELECT DISTINCT(up.powerid) FROM chainclub.ls_user_power_t up LEFT JOIN chainclub.ls_power_t p ON up.powerid = p.id
+		WHERE 1=1
+		<if test="systemId != null">
+			AND p.systemid = #{systemId}
+		</if>
+		<if test="powerType != null and powerType != ''">
+			AND p.type = #{powerType}
+		</if>
+		AND up.userid = #{userId}
+	</select>
+
+	<insert id="insertUserPower">
+		<selectKey resultType="long" order="BEFORE" keyProperty="upId">
+			select CHAINCLUB.SEQ_LS_USER_POWER.nextval as upId from dual
+		</selectKey>
+		INSERT into CHAINCLUB.ls_user_power_t
+		(
+        ID,USERID,POWERID,SYSTEMID
+        )
+        values (
+		#{upId} ,#{userId},#{powerId},#{systemId}
+        )
+	</insert>
+
+	<delete id="delUserPowerByUserIdAndPowerId">
+		delete from CHAINCLUB.ls_user_power_t where userid = #{userId} and powerid = #{powerId} and systemid = #{systemId}
+	</delete>
+
+	<insert id="insertRolePower">
+		<selectKey resultType="long" order="BEFORE" keyProperty="rpId">
+			select CHAINCLUB.SEQ_LS_ROLE_POWER.nextval as rpId from dual
+		</selectKey>
+		insert into CHAINCLUB.ls_role_power_t
+		(
+		ID,ROLEID,POWERID,SYSTEMID
+		)
+		values (
+		#{rpId},#{roleId} ,#{powerId},#{systemId}
+		)
+	</insert>
+
+	<delete id="delPowerById">
+	  	delete from CHAINCLUB.ls_power_t where id = #{id}
+	</delete>
+
+	<delete id="delRolePowerByUserIdAndPowerId">
+		delete from CHAINCLUB.ls_role_power_t where ROLEID = #{roleId} and POWERID = #{powerId}
+	</delete>
+
+	<select id="countPowerByRoleId" resultType="int">
+		select count(*) from CHAINCLUB.LS_ROLE_POWER_T WHERE ROLEID = #{roleId}
+	</select>
+
+	<select id="countPowerByCode" resultType="int">
+		select count(*) from CHAINCLUB.LS_POWER_T WHERE CODE = #{code}
+	</select>
+
+	<delete id="delPowerMenusByPowerId">
+		delete from CHAINCLUB.LS_POWER_MENU_T where POWERID = #{powerId}
+	</delete>
+
+	<insert id="insertPowerMenus">
+		INSERT into CHAINCLUB.LS_POWER_MENU_T(
+		ID,POWERID,MENUID
+		)
+		select CHAINCLUB.SEQ_LS_POWER_MENU.nextval,cd.* from(
+		<foreach collection="menuIds" item="item" index="index"   separator="union all">
+			select
+			#{powerId}  ,#{item}
+			from dual
+		</foreach>
+		) cd
+	</insert>
+
+
+
+	<select id="countUserByPowerId" resultType="int">
+		select count(*) from CHAINCLUB.LS_USER_T t
+		left join CHAINCLUB.LS_USER_POWER_T p on t.ID = p.USERID
+		WHERE t.status = 1 and p.POWERID = #{powerId}
+	</select>
+
+	<select id="countRoleByPowerId" resultType="int">
+		select count(*) from CHAINCLUB.LS_ROLE_POWER_T p
+		WHERE p.POWERID = #{powerId}
+	</select>
+
+	<select id="queryCountPowersByMenuId" resultType="int">
+		SELECT COUNT(*) FROM CHAINCLUB.LS_POWER_MENU_T pm
+		WHERE pm.MENUID = #{menuId}
+	</select>
+
+	<select id="queryPowersBySystemId" resultType="int">
+		SELECT * FROM CHAINCLUB.LS_POWER_T WHERE systemId = #{systemId}
+	</select>
+
+</mapper>

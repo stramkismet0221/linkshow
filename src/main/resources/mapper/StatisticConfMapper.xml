@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.StatisticConfDao">
+
+
+	<insert id="insertStatisticConf">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select chainclub.SEQ_LS_STATISTIC_CONF.nextval as id from dual
+		</selectKey>
+		INSERT INTO CHAINCLUB.LS_STATISTIC_CONF_T(
+		ID,
+		NAME,
+		URL,
+		STATUS,
+		CREATETIME,
+		MODIFYTIME
+		)VALUES(
+		#{id} ,
+		#{name,jdbcType=VARCHAR} ,
+		#{url,jdbcType=VARCHAR} ,
+		#{status,jdbcType=INTEGER} ,
+		sysdate,
+		sysdate
+		)
+	</insert>
+
+	<update id="modifyStatisticConf">
+		UPDATE CHAINCLUB.LS_STATISTIC_CONF_T
+		<set>
+		  <if test="name != null and name != ''">
+		   NAME = #{name,jdbcType=VARCHAR} ,
+		  </if>
+		  <if test="url != null and url != ''">
+		   URL = #{url,jdbcType=VARCHAR} ,
+		  </if>
+		  <if test="status != null">
+		   STATUS = #{status,jdbcType=INTEGER} ,
+		  </if>
+		   MODIFYTIME = sysdate
+		</set>
+		WHERE ID = #{id,jdbcType=BIGINT}
+	</update>
+
+	<select id="queryStatisticCConfListByConditions" resultType="com.ddzhuan.manage.model.StatisticConf">
+		SELECT r.* FROM (
+		SELECT
+		ROWNUM rn,
+		a.*
+		FROM ( SELECT * FROM CHAINCLUB.LS_STATISTIC_CONF_T t
+		WHERE
+		t.STATUS = 1
+		<if test="statisticConf.name != null and statisticConf.name != ''">
+			AND t.NAME LIKE CONCAT(CONCAT('%',#{statisticConf.name,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test="statisticConf.url != null and statisticConf.url != ''">
+			AND t.URL LIKE  CONCAT(CONCAT('%',#{statisticConf.url,jdbcType=VARCHAR}),'%')
+		</if>
+		order by t.createtime desc
+		) a
+		WHERE ROWNUM &lt;= #{size}
+		) r where r.rn &gt; #{start}
+	</select>
+
+	<select id="countStatisticCConfListByConditions" resultType="int">
+		SELECT count(*) FROM CHAINCLUB.LS_STATISTIC_CONF_T t
+		WHERE
+		t.STATUS = 1
+		<if test="name != null and name != ''">
+			AND t.NAME LIKE CONCAT(CONCAT('%',#{name,jdbcType=VARCHAR}),'%')
+		</if>
+		<if test="url != null and url != ''">
+			AND t.URL LIKE  CONCAT(CONCAT('%',#{url,jdbcType=VARCHAR}),'%')
+		</if>
+	</select>
+
+	<select id="queryStatisticConfById" resultType="com.ddzhuan.manage.model.StatisticConf">
+		SELECT * FROM CHAINCLUB.LS_STATISTIC_CONF_T t WHERE ID = #{id,jdbcType=BIGINT}
+	</select>
+
+
+</mapper>

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.OrderDao">
+
+    <insert id="insertOrder" parameterType="OrderInfo">
+        INSERT INTO CHAINCLUB.LS_ORDER_T
+        (
+           id, userid, oid, barcode, name, originalprice, price,
+           discount, costprice, temperature, paytype, receiptno,
+           paytime, refundstatus, tid, placeid
+        ) VALUES (
+           #{id, jdbcType=VARCHAR}, #{userId, jdbcType=VARCHAR}, #{oId, jdbcType=VARCHAR},
+           #{barCode, jdbcType=VARCHAR}, #{name, jdbcType=VARCHAR}, #{originalPrice, jdbcType=DOUBLE},
+           #{price, jdbcType=DOUBLE}, #{discount, jdbcType=DOUBLE}, #{costPrice, jdbcType=DOUBLE},
+           #{temperature, jdbcType=DOUBLE}, #{payType, jdbcType=BIGINT}, #{receiptNo, jdbcType=VARCHAR},
+           sysdate,  #{refundStatus, jdbcType=BIGINT}, #{tId, jdbcType=BIGINT},
+           #{placeId, jdbcType=BIGINT}
+        )
+    </insert>
+
+    <select id="queryOrderList" resultType="OrderInfo">
+        SELECT r.* FROM (
+            SELECT
+            ROWNUM rn,
+            a.*
+            FROM (
+                SELECT * FROM CHAINCLUB.LS_ORDER_T t WHERE 1 = 1
+                <if test="terminalIds != null and terminalIds.size() > 0">
+                    AND tid IN
+                    <foreach collection="terminalIds" item="id" index="index" open="(" close=")" separator=",">
+                        #{id}
+                    </foreach>
+                </if>
+                <if test="placeIds != null and placeIds.size() > 0">
+                    AND placeid IN
+                    <foreach collection="placeIds" item="id" index="index" open="(" close=")" separator=",">
+                        #{id}
+                    </foreach>
+                </if>
+                <if test="orderInfo.receiptNo != null and orderInfo.receiptNo != ''">
+                    AND receiptno = #{orderInfo.receiptNo}
+                </if>
+                <if test="orderInfo.name != null and orderInfo.name != ''">
+                    AND name LIKE CONCAT(CONCAT('%',#{orderInfo.name}),'%')
+                </if>
+                <if test="orderInfo.payType != null">
+                    AND paytype = #{orderInfo.payType}
+                </if>
+                <if test="orderInfo.thirdPayType != null">
+                    AND thirdpaytype = #{orderInfo.thirdPayType}
+                </if>
+                <if test="orderInfo.payStatus != null">
+                    AND paystatus = #{orderInfo.payStatus}
+                </if>
+                <if test="orderInfo.outStatus != null">
+                    AND outstatus = #{orderInfo.outStatus}
+                </if>
+                <if test="orderInfo.refundStatus != null">
+                    AND refundstatus = #{orderInfo.refundStatus}
+                </if>
+                ORDER BY t.paytime DESC
+                ) a
+            WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countOrderList" resultType="Integer">
+        SELECT COUNT(*) FROM CHAINCLUB.LS_ORDER_T t WHERE 1 = 1
+        <if test="terminalIds != null and terminalIds.size() > 0">
+            AND tid IN
+            <foreach collection="terminalIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="placeIds != null and placeIds.size() > 0">
+            AND placeid IN
+            <foreach collection="placeIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="orderInfo.receiptNo != null and orderInfo.receiptNo != ''">
+            AND receiptno = #{orderInfo.receiptNo}
+        </if>
+        <if test="orderInfo.name != null and orderInfo.name != ''">
+            AND name LIKE CONCAT(CONCAT('%',#{orderInfo.name}),'%')
+        </if>
+        <if test="orderInfo.payType != null">
+            AND paytype = #{orderInfo.payType}
+        </if>
+        <if test="orderInfo.thirdPayType != null">
+            AND thirdpaytype = #{orderInfo.thirdPayType}
+        </if>
+        <if test="orderInfo.payStatus != null">
+            AND paystatus = #{orderInfo.payStatus}
+        </if>
+        <if test="orderInfo.outStatus != null">
+            AND outstatus = #{orderInfo.outStatus}
+        </if>
+        <if test="orderInfo.refundStatus != null">
+            AND refundstatus = #{orderInfo.refundStatus}
+        </if>
+    </select>
+
+    <select id="queryOrderInfoById" resultType="OrderInfo">
+        SELECT * FROM chainclub.ls_order_t WHERE id = #{id}
+    </select>
+
+    <select id="queryOrderListByTime" resultType="OrderInfo">
+        SELECT r.* FROM (
+            SELECT
+            ROWNUM rn,
+            a.*
+            FROM (
+                SELECT * FROM chainclub.ls_order_t
+                WHERE 1 = 1
+                <if test="orderInfo != null and orderInfo.oId != null and orderInfo.oId != ''">
+                    AND oid = #{orderInfo.oId}
+                </if>
+                <if test="startTime != null and endTime != ''">
+                    AND paytime >= to_date(#{startTime},'yyyy-mm-dd')
+                </if>
+                <if test="endTime != null and endTime != ''">
+                    AND paytime &lt; to_date(#{endTime},'yyyy-mm-dd')
+                </if>
+            ) a
+            WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countOrderListByTime" resultType="Integer">
+        SELECT count(*) FROM chainclub.ls_order_t
+        WHERE 1 = 1
+        <if test="orderInfo != null and orderInfo.oId != null and orderInfo.oId != ''">
+            AND oid = #{orderInfo.oId}
+        </if>
+        <if test="startTime != null and endTime != ''">
+            AND paytime >= to_date(#{startTime},'yyyy-mm-dd')
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND paytime &lt; to_date(#{endTime},'yyyy-mm-dd')
+        </if>
+    </select>
+
+    <select id="queryOrderListByTerminals" resultType="OrderTerminal">
+        SELECT r.* FROM (
+            SELECT
+            ROWNUM rn,
+            a.*
+            FROM (
+                SELECT * FROM chainclub.ls_order_terminal_t
+                WHERE 1 = 1
+                <if test="orderTerminal.tId != null and orderTerminal.tId != ''">
+                    AND tid LIKE CONCAT(CONCAT('%',#{orderTerminal.tId,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="orderTerminal.tName != null and orderTerminal.tName != ''">
+                    AND tname LIKE CONCAT(CONCAT('%',#{orderTerminal.tName,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="terminalIds != null and terminalIds.size() > 0">
+                    AND tid IN
+                    <foreach item="item" index="index" collection="terminalIds" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+            ) a
+            WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countOrderListByTerminals" resultType="Integer">
+        SELECT COUNT(*) FROM chainclub.ls_order_terminal_t
+        WHERE 1 = 1
+        <if test="orderTerminal.tId != null and orderTerminal.tId != ''">
+            AND tid LIKE CONCAT(CONCAT('%',#{orderTerminal.tId,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="orderTerminal.tName != null and orderTerminal.tName != ''">
+            AND tname LIKE CONCAT(CONCAT('%',#{orderTerminal.tName,jdbcType=VARCHAR}),'%')
+        </if>
+        AND tid IN
+        <foreach item="item" index="index" collection="terminalIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryOrderListByPlaces" resultType="OrderPlace">
+        SELECT r.* FROM (
+            SELECT
+            ROWNUM rn,
+            a.*
+            FROM (
+                SELECT * FROM chainclub.ls_order_place_t
+                WHERE 1 = 1
+                <if test="orderPlace.placeId != null and orderPlace.placeId != ''">
+                    AND placeid LIKE CONCAT(CONCAT('%',#{orderPlace.placeId,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="orderPlace.placeName != null and orderPlace.placeName != ''">
+                    AND placename LIKE CONCAT(CONCAT('%',#{orderPlace.placeName,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="placeIds != null and placeIds.size() > 0">
+                    AND placeid IN
+                    <foreach item="item" index="index" collection="placeIds" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+            ) a
+            WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countOrderListByPlaces" resultType="Integer">
+        SELECT COUNT(*) FROM chainclub.ls_order_place_t
+        WHERE 1 = 1
+        <if test="orderPlace.placeId != null and orderPlace.placeId != ''">
+            AND placeid LIKE CONCAT(CONCAT('%',#{orderPlace.placeId,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="orderPlace.placeName != null and orderPlace.placeName != ''">
+            AND placename LIKE CONCAT(CONCAT('%',#{orderPlace.placeName,jdbcType=VARCHAR}),'%')
+        </if>
+        AND placeid IN
+        <foreach item="item" index="index" collection="placeIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getOrderTerminalByTId" resultType="OrderTerminal">
+        SELECT * FROM chainclub.ls_order_terminal_t WHERE tid = #{tId}
+    </select>
+
+    <insert id="insertOrderTerminal" parameterType="OrderTerminal">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            SELECT CHAINCLUB.SEQ_LS_ORDER_TERMINAL.nextval AS id FROM dual
+        </selectKey>
+        INSERT INTO chainclub.ls_order_terminal_t (
+        id,
+        tid,
+        tname,
+        sales,
+        originalcost,
+        profit,
+        settled,
+        createtime
+        ) VALUES (
+        #{id},
+        #{orderTerminal.tid, jdbcType=VARCHAR},
+        #{orderTerminal.tname, jdbcType=VARCHAR},
+        #{orderTerminal.sales, jdbcType=DOUBLE},
+        #{orderTerminal.originalcost, jdbcType=DOUBLE},
+        #{orderTerminal.profit, jdbcType=DOUBLE},
+        #{orderTerminal.settled, jdbcType=DOUBLE},
+        sysdate
+        )
+    </insert>
+
+    <update id="updateOrderTerminal" parameterType="OrderTerminal">
+        UPDATE chainclub.ls_order_terminal_t
+        <set>
+            <if test="orderTerminal.sales != null and orderTerminal.sales != ''">
+                sales = #{orderTerminal.sales, jdbcType=DOUBLE},
+            </if>
+            <if test="orderTerminal.originalCost != null and orderTerminal.originalCost != ''">
+                originalcost = #{orderTerminal.originalCost, jdbcType=DOUBLE},
+            </if>
+            <if test="orderTerminal.profit != null and orderTerminal.profit != ''">
+                profit = #{orderTerminal.profit, jdbcType=DOUBLE},
+            </if>
+            <if test="orderTerminal.settled != null and orderTerminal.settled != ''">
+                profit = #{orderTerminal.settled, jdbcType=DOUBLE},
+            </if>
+            modifytime = sysdate
+        </set>
+        where id = #{orderTerminal.id,jdbcType=BIGINT}
+    </update>
+
+    <select id="getOrderPlaceByPId" resultType="OrderPlace">
+        SELECT * FROM chainclub.ls_order_place_t WHERE placeid = #{placeId}
+    </select>
+
+    <insert id="insertOrderPlace" parameterType="OrderPlace">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            SELECT CHAINCLUB.SEQ_LS_ORDER_PLACE.nextval AS id FROM dual
+        </selectKey>
+        INSERT INTO chainclub.ls_order_place_t (
+        id,
+        placeid,
+        placename,
+        sales,
+        originalcost,
+        profit,
+        settled,
+        createtime
+        ) VALUES (
+        #{id},
+        #{orderPlace.placeId, jdbcType=VARCHAR},
+        #{orderPlace.placeName, jdbcType=VARCHAR},
+        #{orderPlace.sales, jdbcType=DOUBLE},
+        #{orderPlace.originalcost, jdbcType=DOUBLE},
+        #{orderPlace.profit, jdbcType=DOUBLE},
+        #{orderPlace.settled, jdbcType=DOUBLE},
+        sysdate
+        )
+    </insert>
+
+    <update id="updateOrderPlace" parameterType="OrderPlace">
+        UPDATE chainclub.ls_order_place_t
+        <set>
+            <if test="orderPlace.sales != null and orderPlace.sales != ''">
+                sales = #{orderPlace.sales, jdbcType=DOUBLE},
+            </if>
+            <if test="orderPlace.originalCost != null and orderPlace.originalCost != ''">
+                originalcost = #{orderPlace.originalCost, jdbcType=DOUBLE},
+            </if>
+            <if test="orderPlace.profit != null and orderPlace.profit != ''">
+                profit = #{orderPlace.profit, jdbcType=DOUBLE},
+            </if>
+            <if test="orderPlace.settled != null and orderPlace.settled != ''">
+                profit = #{orderPlace.settled, jdbcType=DOUBLE},
+            </if>
+            modifytime = sysdate
+        </set>
+        where id = #{orderPlace.id,jdbcType=BIGINT}
+    </update>
+
+    <insert id="insertOrderUser" parameterType="OrderUser">
+        <selectKey resultType="long" order="BEFORE" keyProperty="id">
+            SELECT CHAINCLUB.SEQ_LS_ORDER_USER.nextval AS id FROM dual
+        </selectKey>
+        INSERT INTO chainclub.ls_order_user_t (
+        id,
+        orderid,
+        openid,
+        nickname,
+        sex,
+        province,
+        city,
+        imageurl
+        ) VALUES (
+        #{id},
+        #{orderUser.orderId, jdbcType=BIGINT},
+        #{orderUser.openId, jdbcType=VARCHAR},
+        #{orderUser.nickName, jdbcType=VARCHAR},
+        #{orderUser.sex, jdbcType=INTEGER},
+        #{orderUser.province, jdbcType=VARCHAR},
+        #{orderUser.city, jdbcType=VARCHAR},
+        #{orderUser.imageUrl, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <select id="queryOrderUserByOrderId" resultType="OrderUser">
+        SELECT * FROM chainclub.ls_order_user_t WHERE orderid = #{orderId}
+    </select>
+
+</mapper>

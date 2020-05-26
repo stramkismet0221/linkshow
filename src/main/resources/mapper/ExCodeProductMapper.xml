@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.ExCodeProductDao">
+
+	<select id="queryProductAmountByExCode" resultType="com.ddzhuan.manage.model.ExCodeProduct">
+		SELECT * FROM CHAINCLUB.LS_EXCODE_PRODUCT_T WHERE EXCODEID = #{exCodeId}
+	</select>
+
+	<insert id="insertExCodeProduct">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select CHAINCLUB.SEQ_LS_EXCODE_PRODUCT_T.nextval as id from dual
+		</selectKey>
+		INSERT INTO CHAINCLUB.LS_EXCODE_PRODUCT_T
+		(ID,
+		EXCODEID,
+		PRODUCTNAME,
+		BARCODE,
+		AMOUNT
+		)
+		VALUES(
+		#{id},
+		#{exCodeId,jdbcType=BIGINT} ,
+		#{productName,jdbcType=VARCHAR} ,
+		#{barcode,jdbcType=VARCHAR} ,
+		#{amount,jdbcType=INTEGER}
+		)
+	</insert>
+
+	<update id="modifyExCodeProduct">
+		UPDATE CHAINCLUB.LS_EXCODE_PRODUCT_T SET AMOUNT = #{amount,jdbcType=INTEGER}  WHERE EXCODEID = #{exCodeId,jdbcType=BIGINT}  AND BARCODE = #{barCode,jdbcType=VARCHAR}
+	</update>
+
+	<insert id="batchInsertExCodeProduct">
+		INSERT INTO CHAINCLUB.LS_EXCODE_PRODUCT_T
+		(ID,
+		EXCODEID,
+		PRODUCTNAME,
+		BARCODE,
+		AMOUNT
+		)
+		select CHAINCLUB.SEQ_LS_EXCODE_PRODUCT_T.nextval,cd.* from(
+		<foreach collection="exCodeProducts" item="item" index="index"   separator="union all">
+			select
+			#{item.exCodeId,jdbcType=BIGINT} ,
+			#{item.productName,jdbcType=VARCHAR} ,
+			#{item.barcode,jdbcType=VARCHAR} ,
+			#{item.amount,jdbcType=INTEGER}
+			from dual
+		</foreach>
+		) cd
+	</insert>
+
+	<update id="batchUpdateExCodeProduct">
+		<foreach collection="list" item="item" open="begin" close=";end;" separator=";">
+			UPDATE CHAINCLUB.LS_EXCODE_PRODUCT_T
+			<set>
+				<if test="item.exCodeId != null">
+					EXCODEID = #{item.exCodeId,jdbcType=BIGINT},
+				</if>
+				<if test="item.productName != null and item.productName != ''">
+					PRODUCTNAME = #{item.productName,jdbcType=VARCHAR},
+				</if>
+				<if test="item.barcode != null and item.barcode != ''">
+					BARCODE = #{item.barcode,jdbcType=VARCHAR},
+				</if>
+				<if test="item.amount != null">
+					AMOUNT = #{item.amount,jdbcType=BIGINT},
+				</if>
+			</set>
+			WHERE ID = #{item.id}
+		</foreach>
+	</update>
+
+
+	<select id="countExCodeProductByExCodeIdAndBarcode" resultType="int">
+		SELECT count(*) FROM CHAINCLUB.LS_EXCODE_PRODUCT_T WHERE EXCODEID = #{exCodeId,jdbcType=BIGINT} AND  BARCODE = #{barCode,jdbcType=VARCHAR}
+	</select>
+</mapper>

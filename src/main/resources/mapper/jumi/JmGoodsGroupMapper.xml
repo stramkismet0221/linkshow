@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmGoodsGroupDao">
+    <select id="countGroupListByName" resultType="Int">
+        SELECT COUNT(*) FROM chainclub.LS_JM_GOODSGROUP_T gg
+        <where>
+            1 = 1
+            <if test="name != null and name != ''">
+                AND gg.name LIKE CONCAT(CONCAT('%', #{name}), '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="queryGroupListBy" resultType="com.ddzhuan.manage.model.jumi.product.GoodsGroup">
+        select * from (
+        select rownum as rn , t.* from  (
+        select * from chainclub.LS_JM_GOODSGROUP_T m
+        <where>
+            1=1
+            <if test="name != null and name != ''">
+                and m.name like CONCAT(CONCAT('%',#{name}),'%')
+            </if>
+
+        </where>
+        order by m.sno desc
+        ) t  where  rownum &lt;=#{end} ) where rn &gt;#{start}
+    </select>
+
+    <select id="maxSno" resultType="Integer">
+        SELECT nvl(max(sno),0) as sno FROM CHAINCLUB.LS_JM_GOODSGROUP_T
+    </select>
+
+    <update id="snoAddOne" parameterType="Integer">
+        UPDATE CHAINCLUB.LS_JM_GOODSGROUP_T SET sno = sno + 1 WHERE sno >= #{sno}
+    </update>
+
+    <select id="queryGroupByName" resultType="GoodsGroup">
+        select * from CHAINCLUB.LS_JM_GOODSGROUP_T where name=#{name}
+        <if test="id!=null">
+            and id!=#{id}
+        </if>
+    </select>
+
+    <insert id="insertGoodsGroup" parameterType="com.ddzhuan.manage.model.jumi.product.GoodsGroup">
+        <selectKey order="BEFORE" resultType="Long" keyProperty="id">
+            select chainclub.seq_ls_jm_goodsgroup_t_id.nextval as id from dual
+        </selectKey>
+        insert  into chainclub.ls_jm_goodsgroup_t (id,NAME,sno,logo,linkurl,description,createtime)
+        values
+        (
+        #{id},
+        #{name,jdbcType=VARCHAR},
+        #{sno},
+        #{logo,jdbcType=VARCHAR},
+        #{linkUrl,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR},
+        sysdate
+        )
+    </insert>
+
+    <delete id="deleGroupsById">
+        delete from chainclub.ls_jm_goodsgroup_t where id=#{id}
+    </delete>
+
+    <select id="queryGroupById" resultType="GoodsGroup">
+        select * from chainclub.ls_jm_goodsgroup_t where id=#{id}
+    </select>
+
+    <update id="updateGoodsBrand" parameterType="GoodsGroup">
+        update chainclub.ls_jm_goodsgroup_t
+        <set>
+            name=#{name,jdbcType=VARCHAR},
+            sno=#{sno,jdbcType=NUMERIC},
+            logo=#{logo,jdbcType=VARCHAR},
+            linkurl=#{linkUrl,jdbcType=VARCHAR},
+            description=#{description,jdbcType=VARCHAR},
+            updatetime=sysdate
+        </set>
+        where id=#{id}
+
+    </update>
+
+    <update id="editSno" parameterType="Integer">
+        update chainclub.ls_jm_goodsgroup_t
+        set
+        <if test="osno>nsno">
+            sno=sno+1
+        </if>
+
+        <if test="nsno>osno">
+            sno=sno-1
+        </if>
+        where
+        <if test="osno>nsno">
+            sno>=#{nsno} and sno &lt;= #{osno}
+        </if>
+        <if test="nsno>osno">
+            sno>=#{osno} and sno &lt;= #{nsno}
+        </if>
+    </update>
+
+    <update id="reduceOne" parameterType="Integer">
+        update chainclub.ls_jm_goodsgroup_t set sno=sno-1 where sno>#{sno}
+    </update>
+
+</mapper>

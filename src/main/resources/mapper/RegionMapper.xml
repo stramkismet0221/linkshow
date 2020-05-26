@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.RegionDao">
+
+	<select id="getProvinceList" resultType="com.ddzhuan.manage.model.Province">
+		select * from chainclub.province_t
+	</select>
+
+	<select id="getCityList" resultType="com.ddzhuan.manage.model.City">
+		select * from chainclub.city_t c
+		<where>
+			<if test="pid != null">
+				c.provinceid=#{pid}
+			</if>
+
+		</where>
+		order by c.cityid asc
+	</select>
+
+	<select id="getDistrictList" resultType="com.ddzhuan.manage.model.District">
+		select * from chainclub.district_t c
+		<where>
+			<if test="cid != null">
+				c.cityid=#{cid}
+			</if>
+
+		</where>
+		order by c.districtid asc
+	</select>
+
+
+</mapper>

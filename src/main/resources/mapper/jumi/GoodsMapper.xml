@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.GoodsDao">
+
+    <select id="queryGoodsInfoList" resultType="com.ddzhuan.manage.model.jumi.product.Goods">
+        SELECT r.* FROM (
+        SELECT
+        ROWNUM rn,
+        a.*
+        FROM (
+        SELECT * FROM chainclub.LS_JM_GOODS_T
+        <where>
+            <if test="type != null">
+                AND TYPE = #{type,jdbcType=INTEGER}
+            </if>
+            <if test="fields.goodsTypeId != null">
+                AND GOODSTYPEID = #{fields.goodsTypeId,jdbcType=BIGINT}
+            </if>
+            <if test="fields.keyword != null and fields.keyword != ''">
+                AND ( NAME LIKE CONCAT(CONCAT('%', #{fields.keyword,jdbcType=VARCHAR}   ),'%')
+                OR BARCODE LIKE CONCAT(CONCAT('%', #{fields.keyword,jdbcType=VARCHAR}   ),'%') )
+            </if>
+            <choose>
+                <when test="fields.status != null">
+                    <if test="fields.status == 1">
+                        AND SALESSTATUS = 1
+                    </if>
+                    <if test="fields.status == 2">
+                        AND SALESSTATUS = 0
+                    </if>
+                    <if test="fields.status == 3">
+                        AND SHOWTYPE = 1
+                    </if>
+                    <if test="fields.status == 4">
+                        AND SHOWTYPE = 2
+                    </if>
+                </when>
+            </choose>
+            <choose>
+                <when test="fields.priceType != null">
+                    <if test="fields.priceType == 1">
+                        <if test="fields.priceRangeStart != null">
+                            AND PRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND PRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 2">
+                        <if test="fields.priceRangeStart != null">
+                            AND TERMINALPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND TERMINALPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 3">
+                        <if test="fields.priceRangeStart != null">
+                            AND ONLINEPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND ONLINEPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 4">
+                        <if test="fields.priceRangeStart != null">
+                            AND COSTPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND COSTPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 5">
+                        <if test="fields.priceRangeStart != null">
+                            AND TRADEPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND TRADEPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                </when>
+            </choose>
+        </where>
+        order by createtime desc
+        ) a
+        WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countGoodsInfoList" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM chainclub.LS_JM_GOODS_T
+        <where>
+            <if test="type != null">
+                AND TYPE = #{type,jdbcType=INTEGER}
+            </if>
+            <if test="fields.goodsTypeId != null">
+                AND GOODSTYPEID = #{fields.goodsTypeId,jdbcType=BIGINT}
+            </if>
+            <if test="fields.keyword != null and fields.keyword != ''">
+                AND ( NAME LIKE CONCAT(CONCAT('%', #{fields.keyword,jdbcType=VARCHAR}   ),'%')
+                OR BARCODE LIKE CONCAT(CONCAT('%', #{fields.keyword,jdbcType=VARCHAR}   ),'%') )
+            </if>
+            <choose>
+                <when test="fields.status != null">
+                    <if test="fields.status == 1">
+                        AND SALESSTATUS = 1
+                    </if>
+                    <if test="fields.status == 2">
+                        AND SALESSTATUS = 0
+                    </if>
+                    <if test="fields.status == 3">
+                        AND SHOWTYPE = 1
+                    </if>
+                    <if test="fields.status == 4">
+                        AND SHOWTYPE = 2
+                    </if>
+                </when>
+            </choose>
+            <choose>
+                <when test="fields.priceType != null">
+                    <if test="fields.priceType == 1">
+                      <if test="fields.priceRangeStart != null">
+                          AND PRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                      </if>
+                      <if test="fields.priceRangeEnd != null">
+                          AND PRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                      </if>
+                    </if>
+                    <if test="fields.priceType == 2">
+                        <if test="fields.priceRangeStart != null">
+                            AND TERMINALPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND TERMINALPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 3">
+                        <if test="fields.priceRangeStart != null">
+                            AND ONLINEPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND ONLINEPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 4">
+                        <if test="fields.priceRangeStart != null">
+                            AND COSTPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND COSTPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                    <if test="fields.priceType == 5">
+                        <if test="fields.priceRangeStart != null">
+                            AND TRADEPRICE &gt;= #{fields.priceRangeStart,jdbcType=INTEGER}
+                        </if>
+                        <if test="fields.priceRangeEnd != null">
+                            AND TRADEPRICE &lt;= #{fields.priceRangeEnd,jdbcType=INTEGER}
+                        </if>
+                    </if>
+                </when>
+            </choose>
+        </where>
+    </select>
+
+
+    <insert id="insertGoodsInfo">
+        <selectKey keyProperty="id" resultType="long"  order="BEFORE">
+            SELECT CHAINCLUB.SEQ_LS_JM_GOODS_T.nextval FROM DUAL
+        </selectKey>
+        INSERT INTO CHAINCLUB.LS_JM_GOODS_T
+        ( ID
+        , NAME
+        , BARCODE
+        , CODE
+        , ICONS
+        , SHORTCODE
+        , GOODSTYPEID
+        , PRICE
+        , ONLINEPRICE
+        , TERMINALPRICE
+        , COSTPRICE
+        , TRADEPRICE
+        , SPECS
+        , UNITID
+        , WAREHOUSEID
+        , PROMOTE
+        , STORAGE
+        , VALIDITYDAY
+        , ADVANCEDAY
+        , SUPPLIERID
+        , BRANDID
+        , GROUPID
+        , MANUFACTURERID
+        , WARNSTATUS
+        , MINSTOCK
+        , MAXSTOCK
+        , SALESSTATUS
+        , SHOWTYPE
+        , TYPE
+        , CREATETIME
+        , UPDATETIME
+        , EXTENDFIELDS)
+        VALUES
+        ( #{id,jdbcType=BIGINT}
+        , #{name,jdbcType=VARCHAR}
+        , #{barCode,jdbcType=VARCHAR}
+        , #{code,jdbcType=VARCHAR}
+        , #{icons,jdbcType=VARCHAR}
+        , #{shortCode,jdbcType=VARCHAR}
+        , #{goodsTypeId,jdbcType=BIGINT}
+        , #{price,jdbcType=DOUBLE}
+        , #{onlinePrice,jdbcType=DOUBLE}
+        , #{terminalPrice,jdbcType=DOUBLE}
+        , #{costPrice,jdbcType=DOUBLE}
+        , #{tradePrice,jdbcType=DOUBLE}
+        , #{specs,jdbcType=VARCHAR}
+        , #{unitId,jdbcType=BIGINT}
+        , #{wareHouseId,jdbcType=BIGINT}
+        , #{promote,jdbcType=VARCHAR}
+        , #{storage,jdbcType=VARCHAR}
+        , #{validityDay,jdbcType=INTEGER}
+        , #{advanceDay,jdbcType=INTEGER}
+        , #{supplierId,jdbcType=BIGINT}
+        , #{brandId,jdbcType=BIGINT}
+        , #{groupId,jdbcType=BIGINT}
+        , #{manufacturerId,jdbcType=BIGINT}
+        , #{warnStatus,jdbcType=INTEGER}
+        , #{minStock,jdbcType=INTEGER}
+        , #{maxStock,jdbcType=INTEGER}
+        , #{salesStatus,jdbcType=INTEGER}
+        , #{showType,jdbcType=INTEGER}
+        , #{type,jdbcType=INTEGER}
+        , sysdate
+        , sysdate
+        , #{extendFields,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <select id="queryGoodsInfoById" resultType="com.ddzhuan.manage.model.jumi.product.Goods">
+        SELECT * FROM CHAINCLUB.LS_JM_GOODS_T WHERE id=#{id}
+    </select>
+
+    <delete id="deleteGoodsInfoById">
+        DELETE FROM chainclub.LS_JM_GOODS_T WHERE id=#{id}
+    </delete>
+
+    <update id="updateGoodsInfo">
+        UPDATE CHAINCLUB.LS_JM_GOODS_T
+        <set>
+              NAME = #{name,jdbcType=VARCHAR}
+            , BARCODE = #{barCode,jdbcType=VARCHAR}
+            , CODE = #{code,jdbcType=VARCHAR}
+            , ICONS = #{icons,jdbcType=VARCHAR}
+            , SHORTCODE = #{shortCode,jdbcType=VARCHAR}
+            , GOODSTYPEID = #{goodsTypeId,jdbcType=BIGINT}
+            , PRICE = #{price,jdbcType=DOUBLE}
+            , ONLINEPRICE = #{onlinePrice,jdbcType=DOUBLE}
+            , TERMINALPRICE = #{terminalPrice,jdbcType=DOUBLE}
+            , COSTPRICE = #{costPrice,jdbcType=DOUBLE}
+            , TRADEPRICE = #{tradePrice,jdbcType=DOUBLE}
+            , SPECS = #{specs,jdbcType=VARCHAR}
+            , UNITID = #{unitId,jdbcType=BIGINT}
+            , WAREHOUSEID = #{wareHouseId,jdbcType=BIGINT}
+            , PROMOTE = #{promote,jdbcType=VARCHAR}
+            , STORAGE = #{storage,jdbcType=VARCHAR}
+            , VALIDITYDAY = #{validityDay,jdbcType=INTEGER}
+            , ADVANCEDAY = #{advanceDay,jdbcType=INTEGER}
+            , SUPPLIERID = #{supplierId,jdbcType=BIGINT}
+            , BRANDID = #{brandId,jdbcType=BIGINT}
+            , GROUPID = #{groupId,jdbcType=BIGINT}
+            , MANUFACTURERID = #{manufacturerId,jdbcType=BIGINT}
+            , WARNSTATUS = #{warnStatus,jdbcType=INTEGER}
+            , MINSTOCK = #{minStock,jdbcType=INTEGER}
+            , MAXSTOCK = #{maxStock,jdbcType=INTEGER}
+            , SALESSTATUS = #{salesStatus,jdbcType=INTEGER}
+            , SHOWTYPE = #{showType,jdbcType=INTEGER}
+            , TYPE = #{type,jdbcType=INTEGER}
+            , UPDATETIME = sysdate
+            , EXTENDFIELDS = #{extendFields,jdbcType=VARCHAR}
+        </set>
+        WHERE ID = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="queryGoodsListByIds" resultType="Goods">
+        SELECT * FROM chainclub.ls_jm_goods_t WHERE id IN
+        <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

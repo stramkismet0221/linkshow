@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.YPOrderDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<select id="selectOrderByYPreceiptnoAndTradeno"  resultType="YouPengOrder">
+		select * from chainclub.yp_order t where t.ypreceiptno=#{ypreceiptno} and t.tradeno=#{tradeno}
+	</select>
+	
+	<insert id="insertOrder"  parameterType="YouPengOrder">
+		insert into chainclub.yp_order  t(
+			ypreceiptno,
+			tradeno,
+			paytype,
+			orderstatus,
+			outstatus
+		)values (
+			#{ypreceiptno, jdbcType=VARCHAR},
+			#{tradeno, jdbcType=VARCHAR},
+			#{paytype, jdbcType=BIGINT},
+			#{orderstatus, jdbcType=BIGINT},
+			#{outstatus, jdbcType=BIGINT}
+		)
+	</insert>
+	
+	<update id="updateOrder" parameterType="YouPengOrder" >
+		update chainclub.yp_order t set t.orderstatus=#{orderstatus}, modifytime=sysdate
+		where t.ypreceiptno=#{ypreceiptno}
+	</update>
+	
+</mapper>

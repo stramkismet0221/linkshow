@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.ExCodeDao">
+
+
+	<select id="queryExCodeByConditions" resultType="com.ddzhuan.manage.model.ExCode">
+		select r.* from (
+		SELECT
+		ROWNUM rn,
+		a.*
+		FROM ( SELECT * FROM CHAINCLUB.LS_MARKETING_EXCODES_T t
+		<where>
+			<if test="exCode.actId != null and exCode.actId != ''">
+				AND t.ACTID = #{exCode.actId,jdbcType=VARCHAR}
+			</if>
+			<if test="exCode.actName != null and exCode.actName != ''">
+				AND t.ACTNAME like CONCAT(CONCAT('%',#{exCode.actName,jdbcType=VARCHAR}),'%')
+			</if>
+			<if test="exCode.status != null">
+				AND t.STATUS = #{exCode.status,jdbcType=INTEGER}
+			</if>
+		</where>
+		order by t.createtime desc
+		) a
+		WHERE ROWNUM &lt;= #{size}
+		) r where r.rn &gt; #{start}
+	</select>
+
+	<select id="countExCodeByConditions" resultType="int">
+		SELECT count(*) FROM CHAINCLUB.LS_MARKETING_EXCODES_T t
+		<where>
+			<if test="actId != null and actId != ''">
+				AND t.ACTID = #{actId,jdbcType=VARCHAR}
+			</if>
+			<if test="actName != null and actName != ''">
+				AND t.ACTNAME like CONCAT(CONCAT('%',#{actName,jdbcType=VARCHAR}),'%')
+			</if>
+			<if test="status != null">
+				AND t.STATUS = #{status,jdbcType=INTEGER}
+			</if>
+		</where>
+	</select>
+
+	<insert id="insertExCode" useGeneratedKeys="true" keyProperty="id">
+		<selectKey resultType="Long" order="BEFORE" keyProperty="id">
+			select CHAINCLUB.SEQ_LS_MARKETING_COUNPON_SEQ.nextval as id from dual
+		</selectKey>
+		INSERT INTO CHAINCLUB.LS_MARKETING_EXCODES_T
+		(
+		ID,
+		ACTID,
+		ACTNAME,
+		EXCODECOUNT,
+		LOCKED,
+		MACHINETYPE,
+		MACHINES,
+		EXPIRETYPE,
+		EXPIRETIME,
+		EXPIREDAYS,
+		STATUS,
+		CREATETIME,
+		MODIFYTIME
+		)
+		VALUES
+		(
+		#{id},
+		#{actId,jdbcType=VARCHAR} ,
+		#{actName,jdbcType=VARCHAR} ,
+		#{exCodeCount,jdbcType=INTEGER} ,
+		#{locked,jdbcType=INTEGER} ,
+		#{machineType,jdbcType=VARCHAR} ,
+		#{machines,jdbcType=VARCHAR} ,
+		#{expireType,jdbcType=INTEGER} ,
+		#{expireTime,jdbcType=TIMESTAMP} ,
+		#{expireDays,jdbcType=INTEGER}  ,
+		#{status,jdbcType=INTEGER} ,
+		sysdate,
+		sysdate
+		)
+	</insert>
+
+	<update id="modifySelectiveExCode">
+		update CHAINCLUB.LS_MARKETING_EXCODES_T
+		<set>
+			<if test="actName != null and actName != ''">
+				ACTNAME = #{actName,jdbcType=VARCHAR} ,
+			</if>
+			<if test="exCodeCount != null">
+				EXCODECOUNT = #{exCodeCount,jdbcType=INTEGER} ,
+			</if>
+			<if test="locked != null">
+				LOCKED = #{locked,jdbcType=INTEGER} ,
+			</if>
+			<if test="machineType != null and machineType != ''">
+				MACHINETYPE = #{machineType,jdbcType=VARCHAR} ,
+			</if>
+				MACHINES = #{machines,jdbcType=VARCHAR} ,
+			<if test="expireType != null">
+				EXPIRETYPE = #{expireType,jdbcType=INTEGER} ,
+			</if>
+			<if test="expireTime != null">
+				EXPIRETIME = #{expireTime,jdbcType=TIMESTAMP} ,
+			</if>
+			<if test="expireDays != null">
+				EXPIREDAYS = #{expireDays,jdbcType=INTEGER} ,
+			</if>
+			<if test="status != null">
+				STATUS = #{status,jdbcType=INTEGER} ,
+			</if>
+				MODIFYTIME = sysdate
+		</set>
+	  	WHERE ID = #{id,jdbcType=BIGINT}
+	</update>
+
+	<select id="queryExCodeById" resultType="com.ddzhuan.manage.model.ExCode">
+		  SELECT * FROM CHAINCLUB.LS_MARKETING_EXCODES_T WHERE ID = #{exCodeId,jdbcType=BIGINT}
+	</select>
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.GoodsSupplierDao">
+
+	<select id="getGoodsSupplierList" resultType="com.ddzhuan.manage.model.jumi.product.GoodsSupplier">
+		select * from (
+		select rownum as rn , t.* from  (
+		select * from chainclub.ls_jm_goodssupplier_t m
+		<where>
+			1=1
+			<if test="supplier.name != null and supplier.name != ''">
+				and m.name like CONCAT(CONCAT('%',#{supplier.name}),'%')
+			</if>
+			<if test="supplier.states != null">
+				and m.states=#{supplier.states}
+			</if>
+
+		</where>
+		order by m.createtime desc
+		) t  where  rownum &lt;=#{size} ) where rn &gt;#{start}
+
+	</select>
+
+	<select id="countGoodsSupplier" resultType="Integer">
+		select count(*) from  chainclub.ls_jm_goodssupplier_t m
+		<where>
+			<if test=" name != null and name != ''">
+				and m.name like CONCAT(CONCAT('%',#{name}),'%')
+			</if>
+			<if test=" states != null">
+				and m.states=#{states}
+			</if>
+
+		</where>
+	</select>
+
+	<insert id="addGoodsSupplier" parameterType="com.ddzhuan.manage.model.jumi.product.GoodsSupplier">
+		<selectKey order="BEFORE" resultType="Long" keyProperty="id">
+			select chainclub.seq_ls_jm_goodssupplier_id.nextval as id from dual
+		</selectKey>
+		insert into chainclub.ls_jm_goodssupplier_t
+		(
+		id,
+		name,
+		contacts,
+		telephone,
+		email,
+		mngmodel,
+		paymenttype,
+		deliverytype,
+		deliverymoney,
+		returnpoint,
+		deliverypoint,
+		taxpoint,
+		bankinfo,
+		invoiceinfo,
+		contactaddress,
+		description,
+		states,
+		createtime
+		)
+		values
+		(
+		#{id},
+		#{name,jdbcType=VARCHAR},
+		#{contacts,jdbcType=VARCHAR},
+		#{telephone,jdbcType=VARCHAR},
+		#{email,jdbcType=VARCHAR},
+		#{mngmodel,jdbcType=VARCHAR},
+		#{paymentType,jdbcType=VARCHAR},
+		#{deliveryType,jdbcType=VARCHAR},
+		#{deliveryMoney,jdbcType=NUMERIC},
+		#{returnPoint,jdbcType=NUMERIC},
+		#{deliveryPoint,jdbcType=NUMERIC},
+		#{taxPoint,jdbcType=NUMERIC},
+		#{bankInfo},
+		#{invoiceInfo},
+		#{contactAddress},
+		#{description},
+		#{states,jdbcType=NUMERIC},
+		sysdate
+		)
+
+	</insert>
+
+	<select id="checkGoodsSupplierName" resultType="com.ddzhuan.manage.model.jumi.product.GoodsSupplier">
+		select * from chainclub.ls_jm_goodssupplier_t where name=#{name}
+		<if test="id !=null">
+			 and id !=#{id}
+		</if>
+	</select>
+
+	<select id="getGoodsSupplierById" resultType="com.ddzhuan.manage.model.jumi.product.GoodsSupplier">
+		select * from chainclub.ls_jm_goodssupplier_t where id=#{id}
+	</select>
+
+	<delete id="deleteGoodsSupplierById" >
+		delete from chainclub.ls_jm_goodssupplier_t where id=#{id}
+	</delete>
+
+	<update id="updateGoodsSupplier" parameterType="com.ddzhuan.manage.model.jumi.product.GoodsSupplier">
+		update  chainclub.ls_jm_goodssupplier_t
+		<set>
+				name=#{name,jdbcType=VARCHAR},
+				states=#{states},
+				contacts=#{contacts,jdbcType=VARCHAR},
+				telephone=#{telephone,jdbcType=VARCHAR},
+				email=#{email,jdbcType=VARCHAR},
+				mngmodel=#{mngmodel,jdbcType=VARCHAR},
+				paymenttype=#{paymentType,jdbcType=VARCHAR},
+				deliverytype=#{deliveryType,jdbcType=VARCHAR},
+				deliverymoney=#{deliveryMoney,jdbcType=NUMERIC},
+				returnpoint=#{returnPoint,jdbcType=NUMERIC},
+				deliverypoint=#{deliveryPoint,jdbcType=NUMERIC},
+				taxpoint=#{taxPoint,jdbcType=NUMERIC},
+				bankinfo=#{bankInfo,jdbcType=VARCHAR},
+				invoiceinfo=#{invoiceInfo,jdbcType=VARCHAR},
+				contactaddress=#{contactAddress,jdbcType=VARCHAR},
+				description=#{description,jdbcType=VARCHAR},
+  				updatetime=sysdate
+
+		</set>
+		 where id=#{id}
+	</update>
+</mapper>

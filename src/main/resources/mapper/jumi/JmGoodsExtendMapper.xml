@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.JmGoodsExtendDao">
+
+
+    <select id="pageJmGoodsExtend" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsExtend">
+        SELECT r.* FROM (
+        SELECT
+        ROWNUM rn,
+        a.*
+        FROM (
+        SELECT * FROM chainclub.LS_JM_GOODSEXTEND_T
+        <where>
+            <if test="jmGoodsExtend.name != null and jmGoodsExtend.name != ''">
+                AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsExtend.name,jdbcType=VARCHAR}  ),'%')
+            </if>
+            <if test="jmGoodsExtend.goodsType != null">
+                AND GOODSTYPE = #{jmGoodsExtend.goodsType,jdbcType=SMALLINT}
+            </if>
+        </where>
+        order by createtime desc
+        ) a
+        WHERE ROWNUM &lt;= #{end}
+        ) r WHERE r.rn &gt; #{start}
+    </select>
+
+    <select id="countJmGoodsExtend" resultType="int">
+        SELECT COUNT(*) FROM chainclub.LS_JM_GOODSEXTEND_T
+        <where>
+            <if test="jmGoodsExtend.name != null and jmGoodsExtend.name != ''">
+                AND NAME LIKE CONCAT(CONCAT('%',#{jmGoodsExtend.name,jdbcType=VARCHAR}  ),'%')
+            </if>
+            <if test="jmGoodsExtend.goodsType != null">
+                AND GOODSTYPE = #{jmGoodsExtend.goodsType,jdbcType=SMALLINT}
+            </if>
+        </where>
+    </select>
+
+
+    <insert id="insertJmGoodsExtend" parameterType="JmGoodsExtend">
+        <selectKey keyProperty="id" resultType="long"  order="BEFORE">
+            SELECT CHAINCLUB.SEQ_LS_JM_GOODSEXTEND_T.nextval FROM DUAL
+        </selectKey>
+        INSERT INTO CHAINCLUB.LS_JM_GOODSEXTEND_T
+        ( ID
+        , NAME
+        , ISNOTNULL
+        , GOODSTYPE
+        , FIELDTYPE
+        , FIELDVALUE
+        , CREATETIME
+        , UPDATETIME )
+        VALUES
+        ( #{id,jdbcType=BIGINT}
+        , #{name,jdbcType=VARCHAR}
+        , #{isNotNull,jdbcType=SMALLINT}
+        , #{goodsType,jdbcType=SMALLINT}
+        , #{fieldType,jdbcType=SMALLINT}
+        , #{fieldValue,jdbcType=VARCHAR}
+        , sysdate
+        , sysdate
+        )
+    </insert>
+
+    <update id="updateJmGoodsExtendById" parameterType="JmGoodsExtend">
+        UPDATE CHAINCLUB.LS_JM_GOODSEXTEND_T
+        <set>
+              NAME = #{name,jdbcType=VARCHAR}
+            , ISNOTNULL = #{isNotNull,jdbcType=SMALLINT}
+            , GOODSTYPE = #{goodsType,jdbcType=SMALLINT}
+            , FIELDTYPE = #{fieldType,jdbcType=SMALLINT}
+            , FIELDVALUE = #{fieldValue,jdbcType=VARCHAR}
+            , UPDATETIME = sysdate
+        </set>
+        WHERE ID = #{id,jdbcType=BIGINT}
+    </update>
+
+    <delete id="delJmGoodsExtendById">
+        DELETE FROM CHAINCLUB.LS_JM_GOODSEXTEND_T WHERE ID = #{jmGoodsExtendId,jdbcType=BIGINT}
+    </delete>
+
+    <select id="queryJmGoodsExtendById" resultType="com.ddzhuan.manage.model.jumi.product.JmGoodsExtend">
+        SELECT * FROM  CHAINCLUB.LS_JM_GOODSEXTEND_T WHERE ID = #{jmGoodsExtendId,jdbcType=BIGINT}
+    </select>
+    
+</mapper>

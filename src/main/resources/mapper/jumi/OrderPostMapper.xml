@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddzhuan.manage.dao.jumi.OrderPostDao">
+
+
+    <select id="queryAllJmPostConfigList" resultType="com.ddzhuan.manage.model.jumi.order.OrderPost">
+      SELECT * FROM CHAINCLUB.LS_JM_ORDER_POST_T
+    </select>
+
+
+    <update id="updateJmPostConfigById">
+      UPDATE CHAINCLUB.LS_JM_ORDER_POST_T
+      <set>
+          <if test="postType != null and postType != ''">
+              POSTTYPE = #{postType,jdbcType=VARCHAR} ,
+          </if>
+          <if test="openStatus != null">
+              OPENSTATUS = #{openStatus,jdbcType=INTEGER} ,
+          </if>
+          <if test="deafStatus != null">
+              DEAFSTATUS = #{deafStatus,jdbcType=INTEGER} ,
+          </if>
+          <if test="postPrice != null">
+              POSTPRICE = #{postPrice,jdbcType=DOUBLE} ,
+          </if>
+          <if test="postAround != null">
+              POSTAROUND = #{postAround,jdbcType=DOUBLE} ,
+          </if>
+          <if test="sno != null">
+              SNO = #{sno,jdbcType=INTEGER} ,
+          </if>
+          <if test="freeShippingStatus != null">
+              FREESHIPPINGSTATUS = #{freeShippingStatus,jdbcType=INTEGER} ,
+          </if>
+          <if test="enoughPrice != null">
+              ENOUGHPRICE = #{enoughPrice,jdbcType=DOUBLE}
+          </if>
+      </set>
+      WHERE ID = #{id,jdbcType=BIGINT}
+    </update>
+
+  <select id="countOrdConByDeaf" resultType="java.lang.Integer">
+      SELECT COUNT(*) FROM CHAINCLUB.LS_JM_ORDER_POST_T WHERE DEAFSTATUS = 1
+  </select>
+
+  <select id="getOrderPostById" resultType="com.ddzhuan.manage.model.jumi.order.OrderPost">
+      SELECT * FROM CHAINCLUB.LS_JM_ORDER_POST_T WHERE ID = #{id,jdbcType=BIGINT}
+  </select>
+
+
+</mapper>
